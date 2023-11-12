@@ -19,11 +19,12 @@ r(:,1) = get_rotation_dual(h(:, 1));
 orientacion_aux(:, 1) = (quat2eul(r(:, 1)','ZYX'))';
 euler_angles(:, 1) = [orientacion_aux(3, 1);orientacion_aux(2, 1);orientacion_aux(1, 1)];
 
-%% Velocities quaternions
+%% Linear Velocities
 p1_dot = 0.1*ones(1, length(t));
 p2_dot = 0.0*ones(1, length(t));
 p3_dot = 0*ones(1, length(t));
 
+%% Angular Velocities
 w1 = 0*ones(1, length(t));
 w2 = 0*ones(1, length(t));
 w3 = 0.5*ones(1, length(t));
@@ -36,6 +37,7 @@ w = [w1; w2; w3];
 t_d = [0;1;1;1];
 angle_d = pi/2; %% problems in pi "I do not the answer for that...."
 axis_d = [1;3;2];
+
 %% The rotation is similiar a rotation vector formation
 r_d_init = rotation_quaternion(angle_d, axis_d/norm(axis_d));
 h_d(:,1) =  pose_dual(t_d,r_d_init);
@@ -60,10 +62,13 @@ for k = 1:length(t)
 %     if norm_he(:, k) < 0.0001
 %         break
 %     end
+    %% Control Law of the system
     control_law = -2*inner_product_dual_vector_quaternion(kp, log_he);
+    %% Split Control Values
     p_dot(:, k) = control_law(6:8);
     w(:, k) = control_law(2:4);
     
+    %% Get Evolution of the system based on Jacobian
     xi(:, k) = jacobian_dual_quaternion(p_dot(:, k), p(2:4, k), w(:, k));
     xi_aux(:, k) = ((ts/2)*xi(:, k));
     
