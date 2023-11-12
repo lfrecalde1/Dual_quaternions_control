@@ -7,8 +7,8 @@ t_final = 20;
 t = (0:ts:t_final);
 
 %% Initial Position dual quaternion formulation
-t_0 = [0;5;5;10];
-angle_0 = pi/4; %% 
+t_0 = [0;0;0;0];
+angle_0 = pi/4; %% problems in pi "I do not the answer for that...."
 h = zeros(8, length(t)+1);
 %% The rotation is similiar a rotation vector formation
 r_o = rotation_quaternion(angle_0, [0;0;1]);
@@ -27,7 +27,7 @@ p3_dot = 0*ones(1, length(t));
 %% Angular Velocities
 w1 = 0*ones(1, length(t));
 w2 = 0*ones(1, length(t));
-w3 = 0.5*ones(1, length(t));
+w3 = 0.0*ones(1, length(t));
 
 %% Vector Velocities
 p_dot = [p1_dot; p2_dot; p3_dot];
@@ -35,7 +35,7 @@ w = [w1; w2; w3];
 
 %% Desired States of the system
 t_d = [0;1;1;1];
-angle_d = pi;
+angle_d = pi/2; %% problems in pi "I do not the answer for that...."
 axis_d = [1;3;2];
 
 %% The rotation is similiar a rotation vector formation
@@ -63,10 +63,10 @@ for k = 1:length(t)
 %         break
 %     end
     %% Control Law of the system
-    control_law = -2*inner_product_dual_vector_quaternion(kp, log_he);
-    %% Split Control Values
-    p_dot(:, k) = control_law(6:8);
-    w(:, k) = control_law(2:4);
+%     control_law = -2*inner_product_dual_vector_quaternion(kp, log_he);
+%     %% Split Control Values
+%     p_dot(:, k) = control_law(6:8);
+%     w(:, k) = control_law(2:4);
     
     %% Get Evolution of the system based on Jacobian
     xi(:, k) = jacobian_dual_quaternion(p_dot(:, k), p(2:4, k), w(:, k));

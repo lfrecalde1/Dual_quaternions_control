@@ -3,7 +3,6 @@ function [dual_quaternion_J] = jacobian_dual_quaternion(p_dot, p, w)
 %   Detailed explanation goes here
 primal = [0; w];
 dual = [0;p_dot + cross(p, w)];
-
 dual_quaternion_J = [primal; dual];
 end
 
