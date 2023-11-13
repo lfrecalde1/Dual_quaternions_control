@@ -34,9 +34,9 @@ p_dot = [p1_dot; p2_dot; p3_dot];
 w = [w1; w2; w3];
 
 %% Desired States of the system
-t_d = [0;1;1;1];
-angle_d = pi;
-axis_d = [1;3;2];
+t_d = [0;0;0;0];
+angle_d = 0;
+axis_d = [0;0;1];
 
 %% The rotation is similiar a rotation vector formation
 r_d_init = rotation_quaternion(angle_d, axis_d/norm(axis_d));
@@ -53,9 +53,7 @@ kp_attitude = [0;0.8;0.8;0.8];
 kp = [kp_pose; kp_attitude];
 for k = 1:length(t)
     %% Get Error Cuaternions
-    h_d_c(:, k) = conjugate_dual(h_d(:, 1));
-    he(:, k) = mult_dual(h(:, k),h_d_c(:, k));
-    [log_he] = log_error(he(:, k));
+    [log_he] = log_error_control(h_d(:, 1), h(:, k));
     
 %     [log_he_norm(:, k)] = log_error_norm(he(:, k));
 %     norm_he(: ,k) = norm(dual_imag(he(:, k)));
