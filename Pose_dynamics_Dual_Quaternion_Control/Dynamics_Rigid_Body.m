@@ -8,7 +8,7 @@ t_final = 20;
 t = (0:ts:t_final);
 
 %% System Values Dyanmics
-m = 100;
+m = 50;
 J_xx = 1.0;
 J_yy = 0.93;
 J_zz = 0.85;
@@ -24,7 +24,7 @@ t_0 = [0;2;2;1];
 angle_0 = 3.81; 
 h = zeros(8, length(t)+1);
 
-%% The rotation is similiar a rotation vector formation
+%% Initial Conditions Based on Dual Quaternions
 r_o = rotation_quaternion(angle_0, [0.4896; 0.2032; 0.8480]);
 h(:,1) =  pose_dual(t_0,r_o);
 p(:,1) = get_traslatation_dual(h(:, 1));
@@ -43,7 +43,7 @@ xi_aux(:, 1) = ((ts/2)*xi(:, 1));
 
 %% Desired States of the system
 t_d = [0;0;0;0];
-angle_d = 0; %% problems in pi "I do not the answer for that...."
+angle_d = 0; 
 axis_d = [0;0;1];
 
 %% Desired Dual Quaternion
@@ -61,7 +61,6 @@ p_dot_d = [0; 0; 0];
 w_d = [0; 0; 0];
 xi_d(:, 1) = jacobian_dual_quaternion(p_dot_d(:, 1), p_d(2:4, 1), w_d(:, 1));
 
-
 %% Control Actions 
 force = zeros(3, length(t));
 tau = zeros(3, length(t));
@@ -73,6 +72,7 @@ for k = 1:length(t)-1
     %% Get Error Cuaternions
     [U] = Dynamic_control_dual_quaternion(h_d(:, 1), h(:, k), xi_d(:, 1), xi(:, k), p(2:4, k), p_dot(:, k), w(:, k), parameters_system, kp, kd);
     
+    %% Split Control Actions
     force(:, k) = m*(U(6:8)- cross(U(2:4), p(2:4, k)));
     tau(:, k) = J*U(2:4);
     
@@ -92,8 +92,6 @@ for k = 1:length(t)-1
     orientacion_aux(:, k+1) = (quat2eul(r(:, k+1)','ZYX'))';
     euler_angles(:, k+1) = [orientacion_aux(3, k+1);orientacion_aux(2, k+1);orientacion_aux(1, k+1)];
     [Angle_axis(:, k+1)] = quat2axang(r(:, k+1)');
-    
-    
 end
 
 figure
