@@ -2,7 +2,7 @@
 
 This repository contains the control of rigid bodies based on Dual Quaternions.
 
-## Run Differential Kinematics Control Based on Quaternions
+## Run Differential Kinematics Control Based on Dual Quaternions
 
 Inside the folder Pose_Kinematic_Dual_Quaternion, execute the following script:
 
