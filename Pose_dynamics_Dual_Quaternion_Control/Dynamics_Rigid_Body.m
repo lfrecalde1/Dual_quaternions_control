@@ -1,4 +1,5 @@
-%%Rigid Body Dynamics 
+%%%%%%%%%%%%%%%%%%Rigid Body Dynamics Controller Based on Dual
+%%%%%%%%%%%%%%%%%%Quaternions%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 clc, clear all, close all;
 
 %% Time definition
@@ -6,10 +7,12 @@ ts = 0.01;
 t_final = 20;
 t = (0:ts:t_final);
 
-m = 100; %% Mass of the system
+%% System Values Dyanmics
+m = 100;
 J_xx = 1.0;
 J_yy = 0.93;
 J_zz = 0.85;
+parameters_system = [m, J_xx, J_yy, J_zz];
 
 %% Inertia Matrix
 J = [J_xx, 0, 0;...
@@ -30,48 +33,51 @@ r(:,1) = get_rotation_dual(h(:, 1));
 orientacion_aux(:, 1) = (quat2eul(r(:, 1)','ZYX'))';
 euler_angles(:, 1) = [orientacion_aux(3, 1);orientacion_aux(2, 1);orientacion_aux(1, 1)];
 
-%% Vector Velocities
+%% Vector Velocities linear and Angular
 p_dot = 0*ones(3, length(t));
 w = 0*ones(3, length(t));
 
 %% Initial Conditions xi
 xi(:, 1) = jacobian_dual_quaternion(p_dot(:, 1), p(2:4, 1), w(:, 1));
 xi_aux(:, 1) = ((ts/2)*xi(:, 1));
+
 %% Desired States of the system
 t_d = [0;0;0;0];
 angle_d = 0; %% problems in pi "I do not the answer for that...."
 axis_d = [0;0;1];
 
-%% The rotation is similiar a rotation vector formation
+%% Desired Dual Quaternion
 r_d_init = rotation_quaternion(angle_d, axis_d/norm(axis_d));
 h_d(:,1) =  pose_dual(t_d,r_d_init);
 p_d(:,1) = get_traslatation_dual(h_d(:, 1));
 r_d(:,1) = get_rotation_dual(h_d(:, 1));
+
 %% Create Vector of the desired Values
-p_d = p_d.*ones(1, length(h));
-r_d = r_d.*ones(1, length(h));
+p_d = p_d.*ones(1, length(t));
+r_d = r_d.*ones(1, length(t));
 
 %% Desired Linear and Angular Velocities
 p_dot_d = [0; 0; 0];
 w_d = [0; 0; 0];
-
 xi_d(:, 1) = jacobian_dual_quaternion(p_dot_d(:, 1), p_d(2:4, 1), w_d(:, 1));
-
 
 
 %% Control Actions 
 force = zeros(3, length(t));
-force(1, :) = 0.5;
 tau = zeros(3, length(t));
 
-for k = 1:length(t)
+%% Control gains
+kp = 1;
+kd = 2;
+for k = 1:length(t)-1
     %% Get Error Cuaternions
-    [U] = Dynamic_control_dual_quaternion(h_d(:, 1), h(:, k), xi_d(:, 1), xi(:, k), p(2:4, k), p_dot(:, k), w(:, k));
+    [U] = Dynamic_control_dual_quaternion(h_d(:, 1), h(:, k), xi_d(:, 1), xi(:, k), p(2:4, k), p_dot(:, k), w(:, k), parameters_system, kp, kd);
     
     force(:, k) = m*(U(6:8)- cross(U(2:4), p(2:4, k)));
     tau(:, k) = J*U(2:4);
+    
     %% Dynamics Section
-    xi_dot = f_dynamics(p(2:4, k), p_dot(:, k), w(:, k), force(:, k), tau(:, k));
+    xi_dot = f_dynamics(p(2:4, k), p_dot(:, k), w(:, k), force(:, k), tau(:, k), parameters_system);
     
     %% Integral System Based on lie Algebra
     xi(:, k + 1) = xi(:, k) + xi_dot*ts;
@@ -113,7 +119,7 @@ set(gcf, 'PaperSize', [4 2]);
 set(gcf, 'PaperPositionMode', 'manual');
 set(gcf, 'PaperPosition', [0 0 10 4]);
 subplot(3,1,1)
-plot(euler_angles(1,:),'-','Color',[226,76,44]/255,'linewidth',1); hold on
+plot(t, euler_angles(1,:),'-','Color',[226,76,44]/255,'linewidth',1); hold on
 grid on;
 legend({'${{\phi}}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
@@ -121,7 +127,7 @@ title('$\textrm{Angles System}$','Interpreter','latex','FontSize',9);
 ylabel('$[rad]$','Interpreter','latex','FontSize',9);
 
 subplot(3,1,2)
-plot(euler_angles(2,:),'-','Color',[46,188,89]/255,'linewidth',1); hold on
+plot(t,euler_angles(2,:),'-','Color',[46,188,89]/255,'linewidth',1); hold on
 grid on;
 legend({'${\theta}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
@@ -129,11 +135,12 @@ ylabel('$[rad]$','Interpreter','latex','FontSize',9);
 set(gcf, 'Color', 'w'); % Sets axes background
 
 subplot(3,1,3)
-plot(euler_angles(3,:),'-','Color',[26,115,160]/255,'linewidth',1); hold on
+plot(t, euler_angles(3,:),'-','Color',[26,115,160]/255,'linewidth',1); hold on
 grid on;
 legend({'${\psi}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 ylabel('$[rad]$','Interpreter','latex','FontSize',9);
+xlabel('$time[s]$','Interpreter','latex','FontSize',9);
 
 %% Plot Control velocities linear
 figure
@@ -142,15 +149,15 @@ set(gcf, 'PaperSize', [4 2]);
 set(gcf, 'PaperPositionMode', 'manual');
 set(gcf, 'PaperPosition', [0 0 10 4]);
 subplot(3,1,1)
-plot(p_dot(1,:),'-','Color',[226,76,44]/255,'linewidth',1); hold on
+plot(t, p_dot(1,:),'-','Color',[226,76,44]/255,'linewidth',1); hold on
 grid on;
 legend({'${{v_x}}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
-title('$\textrm{Control actions}$','Interpreter','latex','FontSize',9);
+title('$\textrm{Linear Velocities}$','Interpreter','latex','FontSize',9);
 ylabel('$[m/s]$','Interpreter','latex','FontSize',9);
 
 subplot(3,1,2)
-plot(p_dot(2, :),'-','Color',[46,188,89]/255,'linewidth',1); hold on
+plot(t, p_dot(2, :),'-','Color',[46,188,89]/255,'linewidth',1); hold on
 grid on;
 legend({'${v_y}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
@@ -158,11 +165,12 @@ ylabel('$[m/s]$','Interpreter','latex','FontSize',9);
 set(gcf, 'Color', 'w'); % Sets axes background
 
 subplot(3,1,3)
-plot(p_dot(3,:),'-','Color',[26,115,160]/255,'linewidth',1); hold on
+plot(t, p_dot(3,:),'-','Color',[26,115,160]/255,'linewidth',1); hold on
 grid on;
 legend({'$v_z$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 ylabel('$m/s$','Interpreter','latex','FontSize',9);
+xlabel('$time[s]$','Interpreter','latex','FontSize',9);
 
 %% PLot Angular velocities
 figure
@@ -171,15 +179,15 @@ set(gcf, 'PaperSize', [4 2]);
 set(gcf, 'PaperPositionMode', 'manual');
 set(gcf, 'PaperPosition', [0 0 10 4]);
 subplot(3,1,1)
-plot(w(1,:),'-','Color',[226,76,44]/255,'linewidth',1); hold on
+plot(t, w(1,:),'-','Color',[226,76,44]/255,'linewidth',1); hold on
 grid on;
 legend({'${{w_x}}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
-title('$\textrm{Control actions}$','Interpreter','latex','FontSize',9);
+title('$\textrm{Angular Velocities}$','Interpreter','latex','FontSize',9);
 ylabel('$[r/s]$','Interpreter','latex','FontSize',9);
 
 subplot(3,1,2)
-plot(w(2, :),'-','Color',[46,188,89]/255,'linewidth',1); hold on
+plot(t, w(2, :),'-','Color',[46,188,89]/255,'linewidth',1); hold on
 grid on;
 legend({'${w_y}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
@@ -187,11 +195,12 @@ ylabel('$[r/s]$','Interpreter','latex','FontSize',9);
 set(gcf, 'Color', 'w'); % Sets axes background
 
 subplot(3,1,3)
-plot(w(3,:),'-','Color',[26,115,160]/255,'linewidth',1); hold on
+plot(t, w(3,:),'-','Color',[26,115,160]/255,'linewidth',1); hold on
 grid on;
 legend({'$w_z$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 ylabel('$r/s$','Interpreter','latex','FontSize',9);
+xlabel('$time[s]$','Interpreter','latex','FontSize',9);
 
 %% Plot Position Evolution
 figure
@@ -200,65 +209,67 @@ set(gcf, 'PaperSize', [4 2]);
 set(gcf, 'PaperPositionMode', 'manual');
 set(gcf, 'PaperPosition', [0 0 10 4]);
 subplot(3,1,1)
-plot(p_d(2,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, p_d(2,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
-plot(p(2,:),'-','Color',[226,76,44]/255,'linewidth',1); hold on
+plot(t, p(2,:),'-','Color',[226,76,44]/255,'linewidth',1); hold on
 legend({'${{h_{xd}}}$', '${{h_{x}}}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 title('$\textrm{Position Evolution}$','Interpreter','latex','FontSize',9);
 ylabel('$[m]$','Interpreter','latex','FontSize',9);
 
 subplot(3,1,2)
-plot(p_d(3,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, p_d(3,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
-plot(p(3,:),'-','Color',[46,188,89]/255,'linewidth',1); hold on
+plot(t, p(3,:),'-','Color',[46,188,89]/255,'linewidth',1); hold on
 legend({'${{h_{yd}}}$', '${{h_{y}}}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 ylabel('$[m]$','Interpreter','latex','FontSize',9);
 
 subplot(3,1,3)
-plot(p_d(4,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, p_d(4,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
-plot(p(4,:),'-','Color',[26,115,160]/255,'linewidth',1); hold on
+plot(t, p(4,:),'-','Color',[26,115,160]/255,'linewidth',1); hold on
 legend({'${{h_{zd}}}$', '${{h_{z}}}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 ylabel('$[m]$','Interpreter','latex','FontSize',9);
-
+xlabel('$time[s]$','Interpreter','latex','FontSize',9);
+ 
 figure
 set(gcf, 'PaperUnits', 'inches');
 set(gcf, 'PaperSize', [4 2]);
 set(gcf, 'PaperPositionMode', 'manual');
 set(gcf, 'PaperPosition', [0 0 10 4]);
 subplot(4,1,1)
-plot(r_d(1,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, r_d(1,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
-plot(r(1,:),'-','Color',[226,76,44]/255,'linewidth',1); hold on
+plot(t, r(1,:),'-','Color',[226,76,44]/255,'linewidth',1); hold on
 legend({'${{q_{wd}}}$', '${{q_{w}}}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 title('$\textrm{Attitude Evolution}$','Interpreter','latex','FontSize',9);
 
 
 subplot(4,1,2)
-plot(r_d(2,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, r_d(2,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
-plot(r(2,:),'-','Color',[46,188,89]/255,'linewidth',1); hold on
+plot(t, r(2,:),'-','Color',[46,188,89]/255,'linewidth',1); hold on
 legend({'${{q_{xd}}}$', '${{q_{x}}}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 
 
 subplot(4,1,3)
-plot(r_d(3,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, r_d(3,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
-plot(r(3,:),'-','Color',[26,115,160]/255,'linewidth',1); hold on
+plot(t, r(3,:),'-','Color',[26,115,160]/255,'linewidth',1); hold on
 legend({'${{q_{yd}}}$', '${{q_{y}}}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 
 subplot(4,1,4)
-plot(r_d(4,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, r_d(4,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
-plot(r(4,:),'-','Color',[46,188,89]/255,'linewidth',1); hold on
+plot(t, r(4,:),'-','Color',[46,188,89]/255,'linewidth',1); hold on
 legend({'${{q_{zd}}}$', '${{q_{z}}}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
+xlabel('$time[s]$','Interpreter','latex','FontSize',9);
 
 figure
 set(gcf, 'PaperUnits', 'inches');
@@ -266,7 +277,7 @@ set(gcf, 'PaperSize', [4 2]);
 set(gcf, 'PaperPositionMode', 'manual');
 set(gcf, 'PaperPosition', [0 0 10 4]);
 subplot(3,1,1)
-plot(force(1,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, force(1,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
 legend({'$f_x$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
@@ -274,18 +285,19 @@ title('$\textrm{Force Values}$','Interpreter','latex','FontSize',9);
 ylabel('$[N]$','Interpreter','latex','FontSize',9);
 
 subplot(3,1,2)
-plot(force(2,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, force(2,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
 legend({'$f_y$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 ylabel('$[N]$','Interpreter','latex','FontSize',9);
 
 subplot(3,1,3)
-plot(force(3,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, force(3,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
 legend({'$f_z$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 ylabel('$[N]$','Interpreter','latex','FontSize',9);
+xlabel('$time[s]$','Interpreter','latex','FontSize',9);
 
 figure
 set(gcf, 'PaperUnits', 'inches');
@@ -293,7 +305,7 @@ set(gcf, 'PaperSize', [4 2]);
 set(gcf, 'PaperPositionMode', 'manual');
 set(gcf, 'PaperPosition', [0 0 10 4]);
 subplot(3,1,1)
-plot(tau(1,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, tau(1,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
 legend({'$\tau_x$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
@@ -301,15 +313,16 @@ title('$\textrm{Torque Values}$','Interpreter','latex','FontSize',9);
 ylabel('$[N.m]$','Interpreter','latex','FontSize',9);
 
 subplot(3,1,2)
-plot(tau(2,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, tau(2,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
 legend({'$\tau_y$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 ylabel('$[N.m]$','Interpreter','latex','FontSize',9);
 
 subplot(3,1,3)
-plot(tau(3,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+plot(t, tau(3,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
 grid on;
 legend({'$\tau_z$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
 ylabel('$[N.m]$','Interpreter','latex','FontSize',9);
+xlabel('$time[s]$','Interpreter','latex','FontSize',9);

@@ -1,20 +1,20 @@
-function [U] = Dynamic_control_dual_quaternion(h_d, h, xi_d, xi, p, p_dot, w)
+function [U] = Dynamic_control_dual_quaternion(h_d, h, xi_d, xi, p, p_dot, w, parameters, kp, kd)
 %UNTITLED11 Summary of this function goes here
 %% Gains
-kp_pose = [0;1;1;1];
-kp_attitude = [0;1;1;1];
+kp_pose = kp*[0;1;1;1];
+kp_attitude = kp*[0;1;1;1];
 kp = [kp_pose; kp_attitude];
 
-kd_pose = [0;2;2;2];
-kd_attitude = [0;2;2;2];
+kd_pose = kd*[0;1;1;1];
+kd_attitude = kd*[0;1;1;1];
 kd = [kd_pose; kd_attitude];
 
 %% Feedforward
 %% Parameters System
-m = 100; %% Mass of the system
-J_xx = 1.0;
-J_yy = 0.93;
-J_zz = 0.85;
+m = parameters(1); %% Mass of the system
+J_xx = parameters(2);
+J_yy = parameters(3);
+J_zz = parameters(4);
 
 %% Inertia Matrix
 J = [J_xx, 0, 0;...

@@ -1,11 +1,11 @@
-function [xi_dot] = f_dynamics(p, p_dot, w, force, tau)
+function [xi_dot] = f_dynamics(p, p_dot, w, force, tau, parameters)
 %UNTITLED5 Summary of this function goes here
 %   Detailed explanation goes here
 %% Parameters System 
-m = 100; %% Mass of the system
-J_xx = 1.0;
-J_yy = 0.93;
-J_zz = 0.85;
+m = parameters(1); %% Mass of the system
+J_xx = parameters(2);
+J_yy = parameters(3);
+J_zz = parameters(4);
 
 %% Inertia Matrix
 J = [J_xx, 0, 0;...
