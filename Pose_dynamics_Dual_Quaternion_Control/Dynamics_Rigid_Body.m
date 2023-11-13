@@ -259,3 +259,57 @@ grid on;
 plot(r(4,:),'-','Color',[46,188,89]/255,'linewidth',1); hold on
 legend({'${{q_{zd}}}$', '${{q_{z}}}$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
 legend('boxoff')
+
+figure
+set(gcf, 'PaperUnits', 'inches');
+set(gcf, 'PaperSize', [4 2]);
+set(gcf, 'PaperPositionMode', 'manual');
+set(gcf, 'PaperPosition', [0 0 10 4]);
+subplot(3,1,1)
+plot(force(1,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+grid on;
+legend({'$f_x$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
+legend('boxoff')
+title('$\textrm{Force Values}$','Interpreter','latex','FontSize',9);
+ylabel('$[N]$','Interpreter','latex','FontSize',9);
+
+subplot(3,1,2)
+plot(force(2,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+grid on;
+legend({'$f_y$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
+legend('boxoff')
+ylabel('$[N]$','Interpreter','latex','FontSize',9);
+
+subplot(3,1,3)
+plot(force(3,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+grid on;
+legend({'$f_z$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
+legend('boxoff')
+ylabel('$[N]$','Interpreter','latex','FontSize',9);
+
+figure
+set(gcf, 'PaperUnits', 'inches');
+set(gcf, 'PaperSize', [4 2]);
+set(gcf, 'PaperPositionMode', 'manual');
+set(gcf, 'PaperPosition', [0 0 10 4]);
+subplot(3,1,1)
+plot(tau(1,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+grid on;
+legend({'$\tau_x$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
+legend('boxoff')
+title('$\textrm{Torque Values}$','Interpreter','latex','FontSize',9);
+ylabel('$[N.m]$','Interpreter','latex','FontSize',9);
+
+subplot(3,1,2)
+plot(tau(2,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+grid on;
+legend({'$\tau_y$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
+legend('boxoff')
+ylabel('$[N.m]$','Interpreter','latex','FontSize',9);
+
+subplot(3,1,3)
+plot(tau(3,:),'--','Color',[50,50,50]/255,'linewidth',1); hold on
+grid on;
+legend({'$\tau_z$'},'Interpreter','latex','FontSize',11,'Orientation','horizontal');
+legend('boxoff')
+ylabel('$[N.m]$','Interpreter','latex','FontSize',9);
