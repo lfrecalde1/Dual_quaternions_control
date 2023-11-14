@@ -2,11 +2,11 @@ function [U] = Dynamic_control_dual_quaternion(h_d, h, xi_d, xi, p, p_dot, w, pa
 %UNTITLED11 Summary of this function goes here
 %% Gains
 kp_pose = kp*[0;1;1;1];
-kp_attitude = 2*kp*[0;1;1;1];
+kp_attitude = kp*[0;1;1;1];
 kp = [kp_pose; kp_attitude];
 
 kd_pose = kd*[0;1;1;1];
-kd_attitude = 2*kd*[0;1;1;1];
+kd_attitude = kd*[0;1;1;1];
 kd = [kd_pose; kd_attitude];
 
 %% Feedforward

@@ -7,8 +7,8 @@ t_final = 60;
 t = (0:ts:t_final);
 
 %% Initial Position dual quaternion formulation
-t_0 = [0;5;5;5];
-angle_0 = pi/2; %% 
+t_0 = [0;5;5;10];
+angle_0 = pi/4; %% 
 h = zeros(8, length(t)+1);
 
 %% The rotation is similiar a rotation vector formation
@@ -36,23 +36,21 @@ w = [w1; w2; w3];
 
 %% Desired Dual Quaternions
 t_d = [0;0;0;0];
-angle_d = -pi/2;
+angle_d = 0;
 axis_d = [0;0;1];
-p_dot_d = [1*cos(0.1*t);...
-           1*sin(0.1*t);...
-           1*sin(0.1*t)];  
+p_dot_d = [2*cos(0.5*t);...
+           2*sin(0.5*t);...
+           0*ones(1, length(t))];  
        
 w_d = [0*ones(1, length(t));...
-       1*sin(0.1*t);...
-       1*sin(0.1*t)];
+       0*ones(1, length(t));...
+       1*sin(t)];
    
-%% Desired Pose Definition
 [h_d, p_d, r_d, xi_d] = desired_pose(t_d, angle_d, axis_d, p_dot_d, w_d, t, ts);
 %% Gains
 kp_pose = [0;1;1;1];
-kp_attitude = [0;50;50;50];
+kp_attitude = [0;1;1;1];
 kp = [kp_pose; kp_attitude];
-
 for k = 1:length(t)-1
     %% Get Error Cuaternions
     [log_he] = log_error_control(h_d(:, k), h(:, k));
@@ -61,7 +59,7 @@ for k = 1:length(t)-1
 
     
     %% Control Law of the system
-    control_law = -2*inner_product_dual_vector_quaternion(kp, log_he) + 1*Ad_quat(he(:, k), xi_d(:, k));
+    control_law = -2*inner_product_dual_vector_quaternion(kp, log_he) + Ad_quat(he(:, k), xi_d(:, k));
     %% Split Control Values
     p_dot(:, k) = control_law(6:8);
     w(:, k) = control_law(2:4);
@@ -74,7 +72,8 @@ for k = 1:length(t)-1
     h(:, k+1) = expm(mult_dual_matrix(xi_aux(:, k)))*h(:, k);
     p(:, k+1) = get_traslatation_dual(h(:, k+1));
     r(:, k+1) = get_rotation_dual(h(:, k+1));
-
+%     p(:, k+1) = Ad_quat_simple(r(:, k+1), p(:, k+1));
+%     h(:, k+1) =  pose_dual(p(:, k+1),r(:, k+1));
     %% Angles Auxiliar variables
     orientacion_aux(:, k+1) = (quat2eul(r(:, k+1)','ZYX'))';
     euler_angles(:, k+1) = [orientacion_aux(3, k+1);orientacion_aux(2, k+1);orientacion_aux(1, k+1)];

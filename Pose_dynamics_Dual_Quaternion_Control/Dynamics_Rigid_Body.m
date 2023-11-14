@@ -20,7 +20,7 @@ J = [J_xx, 0, 0;...
      0, 0, J_zz];
  
 %% Initial Position dual quaternion formulation
-t_0 = [0;2;2;1];
+t_0 = [0;10;10;10];
 angle_0 = 3.81; 
 h = zeros(8, length(t)+1);
 
@@ -42,7 +42,7 @@ xi(:, 1) = jacobian_dual_quaternion(p_dot(:, 1), p(2:4, 1), w(:, 1));
 xi_aux(:, 1) = ((ts/2)*xi(:, 1));
 
 %% Desired States of the system
-t_d = [0;0;0;0];
+t_d = [0;1;1;1];
 angle_d = 0; 
 axis_d = [0;0;1];
 
@@ -69,6 +69,8 @@ tau = zeros(3, length(t));
 kp = 1;
 kd = 2;
 for k = 1:length(t)-1
+    
+    aux_norm = norm(r(:, k))
     %% Get Error Cuaternions
     [U] = Dynamic_control_dual_quaternion(h_d(:, 1), h(:, k), xi_d(:, 1), xi(:, k), p(2:4, k), p_dot(:, k), w(:, k), parameters_system, kp, kd);
     
