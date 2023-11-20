@@ -3,7 +3,7 @@ clc, clear all, close all;
 
 %% Time definition
 ts = 0.01;
-t_final = 60;
+t_final = 5;
 t = (0:ts:t_final);
 
 %% Initial Position dual quaternion formulation
@@ -58,7 +58,7 @@ for k = 1:length(t)-1
     [log_he] = log_error_control(h_d(:, k), h(:, k));
     h_d_c(:, k) = conjugate_dual(h_d(:, k));
     he(:, k) = mult_dual(h(:, k),h_d_c(:, k));
-
+    aux_error = he(:, k)
     
     %% Control Law of the system
     control_law = -2*inner_product_dual_vector_quaternion(kp, log_he) + 1*Ad_quat(he(:, k), xi_d(:, k));

@@ -21,7 +21,10 @@ r2 = rotation_quaternion(angle_2, [1;0;0]);
 
 %% Traslation and then rotation
 h2_dual = pose_dual(t2,r2)
-
+h_real = h2_dual(1:4)
+h_dual = h2_dual(5:8)
+aux_perpendicular = dot(h_real, h_dual)
+cross(h_real, h_dual)
 %% the position only has values in i j k
 t3 = [0;2;0;-1];
 angle_3 = pi/16;
