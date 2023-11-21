@@ -4,7 +4,7 @@ clc, clear all, close all;
 
 %% Time definition
 ts = 0.05;
-t_final = 60;
+t_final = 30;
 t = (0:ts:t_final);
 
 %% System Parameters
@@ -17,9 +17,10 @@ L_drone = [m, Jxx, Jyy, Jzz, g];
 N = 10;
 
 %% Initial Conditions of the system
-pos = [0.0; 0.0; 5.0];                  %% qd pos
+
+pos = [2.0; 2.0; 1.0];                  %% qd pos
 vel = [0.0; 0.0; 0.0];                  %% qd vel
-quat = [1.0; 0.0; 0.0; 0.0];            %% qd quat
+quat = rotation_quaternion(3.81, [0.4896; 0.2032; 0.8480]);           %% qd quat
 omega = [0.0; 0.0; 0.0;];               %% qd omega
 
 %% Quadrotor generalized vector
@@ -43,17 +44,17 @@ M = 0*ones(3, length(t) -N);
 psi_d = Angulo(hpsid);
 %% Desired angular velocity
 w_d = 0*ones(3, length(t));
-w_d(3, :) = hpsidp; 
-quat_d(1:4, 1) = eul2quat([psi_d(1), 0, 0], 'ZYX');
+w_d(3, :) = 0; 
+quat_d(1:4, 1) = [1; 0.0; 0.0; 0.0];
 
 %% Get desired Quaternio
 [quat_d] = desired_quaternions_values(quat_d, w_d, t, ts);
 %% GENERALIZED DESIRED SIGNALS
-hd = [hxd;...
-      hyd;...
-      hzd];
+hd = [0*hxd;...
+      0*hyd;...
+      0*hzd];
 %% Optimization problem
-bounded = [m*g + 10; 0; 1; -1; 1; -1; 1; -1;];
+bounded = [m*g + 10; 0; 1; -1; 1; -1; 1; -1];
 [f, solver, args] = mpc_drone(bounded, N, L_drone, ts);
 
 %% Init Horizon values
@@ -99,8 +100,8 @@ G2=Drone_Plot_3D(x(1,1),x(2,1),x(3,1),R(:, :, 1));hold on
 plot3(x(1,1),x(2,1),x(3,1),'--','Color',[56,171,217]/255,'linewidth',1.5);hold on,grid on
 plot3(hd(1,1),hd(2,1),hd(3,1),'-','Color',[50,50,5]/255,'linewidth',1.5);hold on,grid on
 
-view(0,90);
-for k = 1:10:length(t)-N
+view(-70,35);
+for k = 1:20:length(t)-N
     drawnow
     delete(G2);
     G2=Drone_Plot_3D(x(1,k),x(2,k),x(3,k),R(:, :, k));hold on

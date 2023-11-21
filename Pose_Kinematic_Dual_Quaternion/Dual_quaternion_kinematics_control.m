@@ -3,16 +3,16 @@ clc, clear all, close all;
 
 %% Time definition
 ts = 0.01;
-t_final = 5;
+t_final = 20;
 t = (0:ts:t_final);
 
 %% Initial Position dual quaternion formulation
-t_0 = [0;5;5;5];
-angle_0 = pi/2; %% 
+t_0 = [0;2;2;1];
+angle_0 = 3.81; %% 
 h = zeros(8, length(t)+1);
 
 %% The rotation is similiar a rotation vector formation
-r_o = rotation_quaternion(angle_0, [0;0;1]);
+r_o = rotation_quaternion(angle_0, [0.4896;0.2032;0.8480]);
 h(:,1) =  pose_dual(t_0,r_o);
 p(:,1) = get_traslatation_dual(h(:, 1));
 r(:,1) = get_rotation_dual(h(:, 1));
@@ -36,21 +36,21 @@ w = [w1; w2; w3];
 
 %% Desired Dual Quaternions
 t_d = [0;0;0;0];
-angle_d = -pi/2;
+angle_d = 0;
 axis_d = [0;0;1];
-p_dot_d = [1*cos(0.1*t);...
-           1*sin(0.1*t);...
-           1*sin(0.1*t)];  
+p_dot_d = [0.0*cos(0.1*t);...
+           0.0*sin(0.1*t);...
+           0.0*sin(0.1*t)];  
        
-w_d = [0*ones(1, length(t));...
-       1*sin(0.1*t);...
-       1*sin(0.1*t)];
+w_d = [0.0*ones(1, length(t));...
+       0.0*sin(0.1*t);...
+       0.0*sin(0.1*t)];
    
 %% Desired Pose Definition
 [h_d, p_d, r_d, xi_d] = desired_pose(t_d, angle_d, axis_d, p_dot_d, w_d, t, ts);
 %% Gains
 kp_pose = [0;1;1;1];
-kp_attitude = [0;50;50;50];
+kp_attitude = [0;1;1;1];
 kp = [kp_pose; kp_attitude];
 
 for k = 1:length(t)-1

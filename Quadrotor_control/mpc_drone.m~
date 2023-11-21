@@ -116,7 +116,7 @@ R(4, 4) = 1/tau_3_max;
 
 %% Function error in quaternions
 q_error = MX.sym('q_error', 4, 1);
-f_error = Function('f', {q_error}, {if_else(q_error(1) >= 0, q_error, -q_error)});
+f_error = Function('f', {x}, {if_else(x > 0, x, 0)});
 %% Definicon del bucle para optimizacion a los largo del tiempo
 for k = 1:N
     st = X(:,k);  con = U(:,k);
@@ -134,8 +134,7 @@ for k = 1:N
     
     %% get Error inQuaternions
     q_error_aux = quaternion_multiply(q, q_d_c);
-    q_error_short = f_error(q_error_aux);
-    obj_quat = obj_quat +  (1-q_error_short(1)) + q_error_short(2:4)'*q_error_short(2:4);
+    obj_quat = obj_quat + f_error(q_error_aux);
     %% Actualizacion del sistema usando Euler runge kutta
     st_next = X(:,k+1);
     k1 = f(st, con);   % new 
