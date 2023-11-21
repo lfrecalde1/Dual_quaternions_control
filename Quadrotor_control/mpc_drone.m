@@ -135,7 +135,10 @@ for k = 1:N
     %% get Error inQuaternions
     q_error_aux = quaternion_multiply(q, q_d_c);
     q_error_short = f_error(q_error_aux);
-    obj_quat = obj_quat +  (1-q_error_short(1)) + q_error_short(2:4)'*q_error_short(2:4);
+    [theta, axis] = quaternionToAxisAngle(q_error_short');
+    log_error = (1/2)*abs(theta(1))*axis(1:3);
+    obj_quat = obj_quat +  log_error*log_error';
+    
     %% Actualizacion del sistema usando Euler runge kutta
     st_next = X(:,k+1);
     k1 = f(st, con);   % new 

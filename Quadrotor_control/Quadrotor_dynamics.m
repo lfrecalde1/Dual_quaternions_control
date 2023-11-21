@@ -18,9 +18,10 @@ N = 10;
 
 %% Initial Conditions of the system
 
-pos = [2.0; 2.0; 1.0];                  %% qd pos
+pos = [0.0; 0.0; 0.0];                  %% qd pos
 vel = [0.0; 0.0; 0.0];                  %% qd vel
 quat = rotation_quaternion(3.81, [0.4896; 0.2032; 0.8480]);           %% qd quat
+%quat = rotation_quaternion(0, [0.0; 0.0; 1]);           %% qd quat
 omega = [0.0; 0.0; 0.0;];               %% qd omega
 
 %% Quadrotor generalized vector
@@ -44,15 +45,16 @@ M = 0*ones(3, length(t) -N);
 psi_d = Angulo(hpsid);
 %% Desired angular velocity
 w_d = 0*ones(3, length(t));
-w_d(3, :) = 0; 
-quat_d(1:4, 1) = [1; 0.0; 0.0; 0.0];
+w_d(3, :) = 1*cos(0.5*t); 
+quat_d(1:4, 1) = rotation_quaternion(pi/2, [0.0; 0.0; 1]);
 
 %% Get desired Quaternio
 [quat_d] = desired_quaternions_values(quat_d, w_d, t, ts);
 %% GENERALIZED DESIRED SIGNALS
-hd = [0*hxd;...
-      0*hyd;...
-      0*hzd];
+hd = [hxd;...
+      hyd;...
+      hzd];
+
 %% Optimization problem
 bounded = [m*g + 10; 0; 1; -1; 1; -1; 1; -1];
 [f, solver, args] = mpc_drone(bounded, N, L_drone, ts);
