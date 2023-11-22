@@ -47,9 +47,9 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
 
     # Desired states
     xref = np.zeros((13, t.shape[0]), dtype = np.double)
-    xref[0, :] = 1.0
-    xref[1, :] = 1.0
-    xref[2, :] = 1.0
+    xref[0, :] = 0.0
+    xref[1, :] = 0.0
+    xref[2, :] = 0.0
 
     xref[6, :] = 1.0
     xref[7, :] = 0.0
@@ -67,7 +67,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     taux_3_min = -0.1
 
     # Quadrotor Model based on casadi
-    model, f_d_c = quadrotorModel(L)
+    model, f_d_c, constraint, f_error = quadrotorModel(L)
 
     # Optimization problem
     ocp = create_ocp_solver(x[:, 0], N_prediction, t_N, F_max, F_min, tau_1_max, tau_1_min, tau_2_max, tau_2_min, tau_3_max, taux_3_min, L)
@@ -168,10 +168,10 @@ if __name__ == '__main__':
         L = [m, Jxx, Jyy, Jzz, g]
 
         # Initial conditions of the system
-        pos_0 = np.array([3.0, 1.0, 3.0], dtype=np.double)
+        pos_0 = np.array([2.0, 2.0, 1.0], dtype=np.double)
         vel_0 = np.array([0.0, 0.0, 0.0], dtype=np.double)
-        angle_0 = 0.0
-        axis_0 = [0.0, 0.0, 1.0]
+        angle_0 = 3.81
+        axis_0 = [0.4896, 0.2032, 0.8480]
         quat_0 = axisToquaternion(angle_0, axis_0)
         omega_0 = np.array([0.0, 0.0, 0.0], dtype=np.double)
 

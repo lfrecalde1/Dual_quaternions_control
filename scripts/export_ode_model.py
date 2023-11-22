@@ -66,6 +66,7 @@ def quadrotorModel(L: list)-> AcadosModel:
     # OUTPUT                           
     # model                                                      - Acados model
     model_name = 'quadrotor'
+    constraint = ca.types.SimpleNamespace()
     # Split system parameters
     m = L[0]
     Jxx = L[1]
@@ -174,6 +175,19 @@ def quadrotorModel(L: list)-> AcadosModel:
     f_system = Function('system',[X, u], [f_expl])
     f_impl = X_dot - f_expl
 
+    # Constraints quaternions
+    norm_q = ca.norm_2(X[6:10, 0])
+    constraint.norm = Function("norm", [X], [norm_q])
+    constraint.expr = vertcat(norm_q)
+    constraint.min = 1.0
+    constraint.max = 1.0
+
+    # Compute short path to the desired quaternion
+    q_error = ca.MX.sym('q_error', 4, 1)
+
+    # Define the function
+    f_error = ca.Function('f_error', [q_error], [ca.if_else(q_error[0] >= 0, q_error, -q_error)])
+
     # Algebraic variables
     z = []
 
@@ -187,7 +201,7 @@ def quadrotorModel(L: list)-> AcadosModel:
     model.z = z
     model.p = p
     model.name = model_name
-    return model, f_system
+    return model, f_system, constraint, f_error
 
 def conjugate_quaternion(q):
     # Compute the conjugate of a specified quaternion
@@ -230,6 +244,28 @@ def quat_multiply(q1, q2):
     Q = matrix_q(q1)
     q1q2 = Q@q2
     return q1q2
+
+def quaternion_to_axis_angle(q):
+    # Log quaternion
+    # INPUT
+    # q                              - quaternion 
+    # OUTPUT 
+    # theta                          - angle rotation
+    # axis                           - axis where the rotation was executed
+
+    q = q / ca.norm_2(q)
+
+    # Extract the scalar and vector parts
+    scalar_part = q[0]
+    vector_part = q[1:4]
+
+    # Compute the rotation angle (in radians)
+    theta = 2 * ca.acos(scalar_part)
+
+    # Compute the rotation axis
+    axis = vector_part / ca.norm_2(vector_part)
+
+    return theta, axis
 
 
 
