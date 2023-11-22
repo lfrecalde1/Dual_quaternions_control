@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 def quatTorot(quat: np.ndarray)->np.ndarray:
     # Function to transform a quaternion to a rotational matrix
     # INPUT
@@ -152,3 +153,77 @@ def f_d_casadi(x: np.ndarray, F: np.ndarray, M: np.ndarray, ts: float, f_s):
     x_k = x + (ts/6)*(k1 +2*k2 +2*k3 +k4)
     aux_x = np.array(x_k[:, 0]).reshape(13, )
     return aux_x
+
+def ref_trajectory(t):
+    # Compute the desired Trajecotry of the system
+    # INPUT 
+    # t                                                - time
+    # OUTPUT
+    # xd, yd, zd                                       - desired position
+    # theta                                            - desired orientation
+    # theta_p                                          - desired angular velocity
+
+    # Desired period by the user
+    period = 10.0  
+    radius = 1.0  
+    omega = (2 * np.pi) / period  # angular frequency
+
+    # Compute desired reference x y z
+    xd = radius * np.cos(omega * t)
+    yd = radius * np.sin(omega * t)
+    zd = 0.0*t
+
+    # Compute velocities
+    xd_p = -radius * omega * np.sin(omega * t)
+    yd_p = radius * omega * np.cos(omega * t)
+    zd_p = 0.0*t
+
+    # Compute acceleration
+    xd_pp = -radius * omega * omega * np.cos(omega * t)
+    yd_pp = -radius * omega * omega * np.sin(omega * t)
+
+    theta = np.arctan2(yd_p, xd_p)
+    theta_p = (1. / ((yd_p / xd_p) ** 2 + 1)) * ((yd_pp * xd_p - yd_p * xd_pp) / xd_p ** 2)
+    theta_p[0] = 0
+
+    return xd, yd, theta, theta_p
+
+def desired_quaternion(q, omega, ts):
+    # Compute the the rate of change of the quaternion
+    k1 = quatdot(q, omega)
+    k2 = quatdot(q+(ts/2)*k1.reshape((4,)), omega)
+    k3 = quatdot(q+(ts/2)*k2.reshape((4,)), omega)
+    k4 = quatdot(q+(ts)*k3.reshape((4,)), omega)
+    q_k = q + (ts/6)*(k1.reshape((4,)) +2*k2.reshape((4, )) +2*k3.reshape((4, )) +k4.reshape((4, )))
+    return q_k
+
+def compute_desired_quaternion(theta, theta_p, t, ts):
+    # Compute the desired quaternion over time with respect to the angular velocity omega.
+    # INPUT
+    # theta                                                                              - desired inital angle 
+    # theta_p                                                                            - angular velocity wz
+    # t                                                                                  - time
+    # ts                                                                                 - sample time
+    # OUTPUT
+    # q                                                                                  - desired quaternion 
+    # Empty vector
+    q = np.zeros((4, t.shape[0]), dtype = np.double)
+    omega = np.zeros((3, t.shape[0]), dtype = np.double)
+
+    # Euler angles to quaternion
+    r = R.from_euler('xyz',[0, 0, theta[0]], degrees=False)
+    r_q = r.as_quat()
+
+    # Initial conditions
+    q[0, 0] = r_q[3]
+    q[1, 0] = r_q[0]
+    q[2, 0] = r_q[1]
+    q[3, 0] = r_q[2]
+
+    # Angular velocity only z axis
+    omega[2, :] = theta_p
+
+    # Compute desired quaternion
+    for k in range(0, t.shape[0]-1):
+        q[:, k+1] = desired_quaternion(q[:, k], omega[:, k], ts)
+    return  q

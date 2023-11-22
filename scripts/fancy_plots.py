@@ -225,7 +225,7 @@ def fancy_plots_1():
     return fig, ax1
 
 
-def plot_states_position(fig11, ax11, ax21, ax31, x, t, name):
+def plot_states_position(fig11, ax11, ax21, ax31, x, xd, t, name):
         t = t[0:x.shape[1]]
         ax11.set_xlim((t[0], t[-1]))
         ax21.set_xlim((t[0], t[-1]))
@@ -236,17 +236,24 @@ def plot_states_position(fig11, ax11, ax21, ax31, x, t, name):
         state_1_e, = ax11.plot(t[0:t.shape[0]], x[0, 0:t.shape[0]],
                     color='#C43C29', lw=1.0, ls="-")
 
+        state_1_e_d, = ax11.plot(t[0:t.shape[0]], xd[0, 0:t.shape[0]],
+                    color='#1D2121', lw=1.0, ls="--")
 
         state_2_e, = ax21.plot(t[0:t.shape[0]], x[1, 0:t.shape[0]],
                         color='#3FB454', lw=1.0, ls="-")
 
+        state_2_e_d, = ax21.plot(t[0:t.shape[0]], xd[1, 0:t.shape[0]],
+                    color='#1D2121', lw=1.0, ls="--")
 
         state_3_e, = ax31.plot(t[0:t.shape[0]], x[2, 0:t.shape[0]],
                         color='#3F8BB4', lw=1.0, ls="-")
 
+        state_3_e_d, = ax31.plot(t[0:t.shape[0]], xd[2, 0:t.shape[0]],
+                    color='#1D2121', lw=1.0, ls="--")
+
         ax11.set_ylabel(r"$[m]$", rotation='vertical')
-        ax11.legend([state_1_e],
-                [ r'$x$'],
+        ax11.legend([state_1_e, state_1_e_d],
+                [ r'$x$', r'$x_d$'],
                 loc="best",
                 frameon=True, fancybox=True, shadow=False, ncol=2,
                 borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
@@ -254,8 +261,8 @@ def plot_states_position(fig11, ax11, ax21, ax31, x, t, name):
         ax11.grid(color='#949494', linestyle='-.', linewidth=0.5)
 
         ax21.set_ylabel(r"$[m]$", rotation='vertical')
-        ax21.legend([state_2_e],
-                [r'$y$'],
+        ax21.legend([state_2_e, state_2_e_d],
+                [r'$y$', r'$y_d$'],
                 loc="best",
                 frameon=True, fancybox=True, shadow=False, ncol=2,
                 borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
@@ -264,8 +271,8 @@ def plot_states_position(fig11, ax11, ax21, ax31, x, t, name):
         ax21.set_xticklabels([])
     
         ax31.set_ylabel(r"$[m]$", rotation='vertical')
-        ax31.legend([state_3_e],
-                [r'$z$'],
+        ax31.legend([state_3_e, state_3_e_d],
+                [r'$z$', r'$z$'],
                 loc="best",
                 frameon=True, fancybox=True, shadow=False, ncol=2,
                 borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
@@ -277,7 +284,7 @@ def plot_states_position(fig11, ax11, ax21, ax31, x, t, name):
         fig11.savefig(name + ".png")
         return None
 
-def plot_states_quaternion(fig11, ax11, ax21, ax31, ax41, x, t, name):
+def plot_states_quaternion(fig11, ax11, ax21, ax31, ax41, x, xd, t, name):
         t = t[0:x.shape[1]]
         ax11.set_xlim((t[0], t[-1]))
         ax21.set_xlim((t[0], t[-1]))
@@ -291,18 +298,30 @@ def plot_states_quaternion(fig11, ax11, ax21, ax31, ax41, x, t, name):
         state_1_e, = ax11.plot(t[0:t.shape[0]], x[0, 0:t.shape[0]],
                     color='#C43C29', lw=1.0, ls="-")
 
+        state_1_e_d, = ax11.plot(t[0:t.shape[0]], xd[0, 0:t.shape[0]],
+                    color='#1D2121', lw=1.0, ls="--")
+
         state_2_e, = ax21.plot(t[0:t.shape[0]], x[1, 0:t.shape[0]],
                         color='#3FB454', lw=1.0, ls="-")
+
+        state_2_e_d, = ax21.plot(t[0:t.shape[0]], xd[1, 0:t.shape[0]],
+                    color='#1D2121', lw=1.0, ls="--")
 
         state_3_e, = ax31.plot(t[0:t.shape[0]], x[2, 0:t.shape[0]],
                         color='#3F8BB4', lw=1.0, ls="-")
 
+        state_3_e_d, = ax31.plot(t[0:t.shape[0]], xd[2, 0:t.shape[0]],
+                    color='#1D2121', lw=1.0, ls="--")
+
         state_4_e, = ax41.plot(t[0:t.shape[0]], x[3, 0:t.shape[0]],
                         color='#36323E', lw=1.0, ls="-")
 
+        state_4_e_d, = ax41.plot(t[0:t.shape[0]], xd[3, 0:t.shape[0]],
+                    color='#1D2121', lw=1.0, ls="--")
+
         ax11.set_ylabel(r"$[]$", rotation='vertical')
-        ax11.legend([state_1_e],
-                [ r'$q_w$'],
+        ax11.legend([state_1_e, state_1_e_d],
+                [ r'$q_w$', r'$q_{wd}$'],
                 loc="best",
                 frameon=True, fancybox=True, shadow=False, ncol=2,
                 borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
@@ -310,8 +329,8 @@ def plot_states_quaternion(fig11, ax11, ax21, ax31, ax41, x, t, name):
         ax11.grid(color='#949494', linestyle='-.', linewidth=0.5)
 
         ax21.set_ylabel(r"$[]$", rotation='vertical')
-        ax21.legend([state_2_e],
-                [r'$q_1$'],
+        ax21.legend([state_2_e, state_2_e_d],
+                [r'$q_1$', r'$q_{1d}$'],
                 loc="best",
                 frameon=True, fancybox=True, shadow=False, ncol=2,
                 borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
@@ -320,8 +339,8 @@ def plot_states_quaternion(fig11, ax11, ax21, ax31, ax41, x, t, name):
         ax21.set_xticklabels([])
 
         ax31.set_ylabel(r"$[]$", rotation='vertical')
-        ax31.legend([state_3_e],
-                [r'$q_2$'],
+        ax31.legend([state_3_e, state_3_e_d],
+                [r'$q_2$', r'$q_{2d}$'],
                 loc="best",
                 frameon=True, fancybox=True, shadow=False, ncol=2,
                 borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,
@@ -330,8 +349,8 @@ def plot_states_quaternion(fig11, ax11, ax21, ax31, ax41, x, t, name):
         ax31.set_xticklabels([])
     
         ax41.set_ylabel(r"$[]$", rotation='vertical')
-        ax41.legend([state_4_e],
-                [r'$q_3$'],
+        ax41.legend([state_4_e, state_4_e_d],
+                [r'$q_3$', r'$q_{3d}$'],
                 loc="best",
                 frameon=True, fancybox=True, shadow=False, ncol=2,
                 borderpad=0.5, labelspacing=0.5, handlelength=3, handletextpad=0.1,

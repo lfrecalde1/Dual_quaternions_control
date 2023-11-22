@@ -22,9 +22,12 @@ function [xd, yd, zd, psid, xd_p, yd_p, zd_p, psid_p] = Trajectory(n,t,mul)
    % c) Trayectoria de un 8 
         case 3
             Q = 0.2;
-            xd = 4 * sin(mul*0.04*t)+3;         xd_p = 4*mul*0.04*cos(mul*0.04*t);     xd_pp = -4*mul*mul*0.04*0.04*sin(mul*0.04*t);
-            yd = 4 * sin(mul*0.08*t);         yd_p = 4*mul*0.08*cos(mul*0.08*t);     yd_pp = -4*mul*mul*0.08*0.08*sin(mul*0.08*t);               
-            zd = 2.5 * sin (Q * t) +5 ;             zd_p = Q*cos(Q*t);
+            period = 10;
+            radius = 1.0;
+            omega = (2*pi)/period;
+            xd = radius*cos(omega*t);         xd_p = - radius*omega*sin(omega*t);     xd_pp = - radius*omega*omega*cos(omega*t);
+            yd = radius*sin(omega*t);         yd_p =  radius*omega*cos(omega*t);     yd_pp = -radius*omega*omega*sin(omega*t);               
+            zd = 0*t;                          zd_p = Q*cos(Q*t);
    % d) Trayectoria Silla de Montar
         case 4  
             xd= 5 * cos(0.05*t) + 5;                xd_p=-0.25*sin(0.05*t);           xd_pp=-0.0125*cos(0.05*t);

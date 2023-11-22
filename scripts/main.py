@@ -3,10 +3,11 @@ import time
 import matplotlib.pyplot as plt
 from fancy_plots import fancy_plots_3, fancy_plots_4
 from fancy_plots import plot_states_position, plot_states_quaternion, plot_control_actions
-from system_functions import f_d, axisToquaternion, f_d_casadi
+from system_functions import f_d, axisToquaternion, f_d_casadi, ref_trajectory, compute_desired_quaternion
 from export_ode_model import quadrotorModel
 from acados_template import AcadosOcpSolver, AcadosSimSolver
 from nmpc import create_ocp_solver
+
 
 
 def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
@@ -47,14 +48,21 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
 
     # Desired states
     xref = np.zeros((13, t.shape[0]), dtype = np.double)
-    xref[0, :] = 0.0
-    xref[1, :] = 0.0
+    # Desired position of the system
+    xd, yd, theta, theta_p = ref_trajectory(t)
+
+    xref[0, :] = xd
+    xref[1, :] = yd
     xref[2, :] = 0.0
 
-    xref[6, :] = 1.0
-    xref[7, :] = 0.0
-    xref[8, :] = 0.0
-    xref[9, :] = 0.0
+    # Compute desired quaternion
+    q_d = compute_desired_quaternion(theta, theta_p, t, ts)
+
+    # Desired quaternion
+    xref[6, :] = q_d[0]
+    xref[7, :] = q_d[1]
+    xref[8, :] = q_d[2]
+    xref[9, :] = q_d[3]
 
     # Constraints on control actions
     F_max = L[0]*L[4] + 10
@@ -138,18 +146,18 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     # Results
     # Position
     fig11, ax11, ax21, ax31 = fancy_plots_3()
-    plot_states_position(fig11, ax11, ax21, ax31, x[0:3, :], t, "Position of the System")
-    #plt.show()
+    plot_states_position(fig11, ax11, ax21, ax31, x[0:3, :], xref[0:3, :], t, "Position of the System")
+    plt.show()
 
     # Orientation
     fig12, ax12, ax22, ax32, ax42 = fancy_plots_4()
-    plot_states_quaternion(fig12, ax12, ax22, ax32, ax42, x[6:10, :], t, "Quaternions of the System")
-    #plt.show()
+    plot_states_quaternion(fig12, ax12, ax22, ax32, ax42, x[6:10, :], xref[6:10, :], t, "Quaternions of the System")
+    plt.show()
 
     # Control Actions
     fig13, ax13, ax23, ax33, ax43 = fancy_plots_4()
     plot_control_actions(fig13, ax13, ax23, ax33, ax43, F, M, t, "Control Actions of the System")
-    #plt.show()
+    plt.show()
     None
 
 if __name__ == '__main__':
