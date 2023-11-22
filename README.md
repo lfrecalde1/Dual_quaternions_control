@@ -15,3 +15,8 @@ Inside the folder Pose_dynamics_Dual_Quaternion_Control execute the following sc
 ```bash
 Dynamics_Rigid_Body.m
 ```
+## Run NMPC using Acados
+Inside the folder scripts execute the following script:
+```bash
+main.py
+```
