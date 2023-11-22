@@ -8,11 +8,11 @@ t = (0:ts:t_final);
 
 %% Initial Position dual quaternion formulation
 t_0 = [0;2;2;1];
-angle_0 = 3.81; %% 
+angle_0 = 0; %% 
 h = zeros(8, length(t)+1);
 
 %% The rotation is similiar a rotation vector formation
-r_o = rotation_quaternion(angle_0, [0.4896;0.2032;0.8480]);
+r_o = rotation_quaternion(angle_0, [0;0;1]);
 h(:,1) =  pose_dual(t_0,r_o);
 p(:,1) = get_traslatation_dual(h(:, 1));
 r(:,1) = get_rotation_dual(h(:, 1));

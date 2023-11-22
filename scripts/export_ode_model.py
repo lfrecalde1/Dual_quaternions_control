@@ -9,11 +9,12 @@ def quatTorot_c(quat):
     # quat                                                       - unit quaternion
     # OUTPUT                                     
     # R                                                          - rotational matrix
+
     # Normalized quaternion
     q = quat
     q = q/ca.norm_2(q)
 
-    # Auxiliar variable
+    # Create empty variable
     q_hat = ca.MX.zeros(3, 3)
     q_hat[0, 1] = -q[3]
     q_hat[0, 2] = q[2]
@@ -22,11 +23,12 @@ def quatTorot_c(quat):
     q_hat[2, 0] = -q[2]
     q_hat[2, 1] = q[1]
 
-    R = ca.MX.eye(3) + 2 * q_hat@q_hat + 2 * q[0] * q_hat
+    # Compute Rotational Matrix
+    R = ca.MX.eye(3) + 2 * (q_hat@q_hat) + 2 * q[0] * q_hat
     return R
 
 def quatdot_c(quat, omega):
-    # Quaternion evolution guaranteeing norm 1.
+    # Quaternion evolution guaranteeing norm 1 (Improve this section)
     # INPUT
     # quat                                                   - actual quaternion
     # omega                                                  - angular velocities
@@ -91,7 +93,7 @@ def quadrotorModel(L: list)-> AcadosModel:
 
     X = vertcat(x, y, z, vx, vy, vz, qw, q1, q2, q3, wx, wy, wz)
 
-    # Auxiliary variables explicit function
+    # Auxiliary variables implicit function
     x_dot = MX.sym('x_dot')
     y_dot = MX.sym('y_dot')
     z_dot = MX.sym('z_dot')
@@ -205,6 +207,7 @@ def matrix_q(q):
     # q                                                - quaternion
     #OUTPUT  
     # Q                                                - quaternion Matrix
+    # Split variables
     a1 = q[0]
     b1 = q[1]
     c1 = q[2]
@@ -215,8 +218,8 @@ def matrix_q(q):
         ca.horzcat(b1, a1, -d1, c1),
         ca.horzcat(c1, d1, a1, -b1),
         ca.horzcat(d1, -c1, b1, a1))
-
     return Q
+
 def quat_multiply(q1, q2):
     # Multiplication between quaternions
     # INPUT

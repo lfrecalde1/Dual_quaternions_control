@@ -7,6 +7,8 @@ from system_functions import f_d, axisToquaternion, f_d_casadi
 from export_ode_model import quadrotorModel
 from acados_template import AcadosOcpSolver, AcadosSimSolver
 from nmpc import create_ocp_solver
+
+
 def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     # DESCRIPTION
     # simulation of a quadrotor using a NMPC as a controller
@@ -16,7 +18,10 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     # t_N                       - NMPC prediction time
     # x_0                       - initial conditions
     # OUTPUS 
-    # None
+    # x                         - states of the system
+    # F                         - force control action
+    # M                         - torques of the system
+    # delta_t                   - computational time
 
     # Simulation time definition
     t = np.arange(0, t_f + ts, ts)
@@ -25,27 +30,33 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     N = np.arange(0, t_N + ts, ts)
     N_prediction = N.shape[0]
 
-    # Auxiliary variables for the execution time of the NMPC and the sample time
+    # Auxiliary variables for the execution time of the NMPC
     delta_t = np.zeros((1, t.shape[0] - N_prediction), dtype=np.double)
     t_sample = ts*np.ones((1, t.shape[0] - N_prediction), dtype=np.double)
 
-    # Vector of the system
+    # Generalized states of the system
     x = np.zeros((13, t.shape[0] + 1 - N_prediction), dtype=np.double)
     x[:, 0] = x_0
 
     # Control actions
     F = np.zeros((1, t.shape[0] - N_prediction), dtype=np.double)
     M = np.zeros((3, t.shape[0] - N_prediction), dtype=np.double)
+
+    # Generalized control actions
     u = np.zeros((4, t.shape[0] - N_prediction), dtype=np.double)
 
     # Desired states
     xref = np.zeros((13, t.shape[0]), dtype = np.double)
+    xref[0, :] = 1.0
+    xref[1, :] = 1.0
+    xref[2, :] = 1.0
+
     xref[6, :] = 1.0
     xref[7, :] = 0.0
     xref[8, :] = 0.0
     xref[9, :] = 0.0
 
-    # Actions Constraints
+    # Constraints on control actions
     F_max = L[0]*L[4] + 10
     F_min = 0
     tau_1_max = 0.1
@@ -55,7 +66,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     tau_3_max = 0.1
     taux_3_min = -0.1
 
-    # Model Casadi
+    # Quadrotor Model based on casadi
     model, f_d_c = quadrotorModel(L)
 
     # Optimization problem
@@ -63,8 +74,12 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
 
     # Creation of the optimization problem
     solver_json = 'acados_ocp_' + model.name + '.json'
+
+    # These parameters can be modified in order to avoid the creation of a new optimal control problem 
     AcadosOcpSolver.generate(ocp, json_file=solver_json)
     AcadosOcpSolver.build(ocp.code_export_directory, with_cython=True)
+
+    # Assignation of the optimal control problem
     acados_ocp_solver = AcadosOcpSolver.create_cython_solver(solver_json)
     
     # Integration using Acados
@@ -89,7 +104,6 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
         acados_ocp_solver.set(0, "ubx", x[:, k])
 
         # Desired Trajectory of the system
-        # SET REFERENCES
         for j in range(N_prediction):
             yref = xref[:,k+j]
             acados_ocp_solver.set(j, "p", yref)
@@ -111,6 +125,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
         toc_solver = time.time() - tic
         delta_t[:, k] = toc_solver
 
+        # Get states of the system using acados (ERK)
         acados_integrator.set("x", x[:, k])
         acados_integrator.set("u", u[:, k])
 
@@ -119,7 +134,6 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
 
         # System evolution
         x[:, k+1] = xcurrent
-
 
     # Results
     # Position
@@ -136,25 +150,24 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     fig13, ax13, ax23, ax33, ax43 = fancy_plots_4()
     plot_control_actions(fig13, ax13, ax23, ax33, ax43, F, M, t, "Control Actions of the System")
     #plt.show()
-
     None
 
 if __name__ == '__main__':
-    try:
+    try: #################################### Simulation  #####################################################
         # Time parameters
-        ts = 0.01
+        ts = 0.05
         t_f = 30
-        t_N = 0.3
+        t_N = 0.5
 
-        # Parameters of the system
-        m = 1
+        # Parameters of the system  (mass, inertial matrix, gravity)
+        m = 1                                                                             
         Jxx = 2.64e-3
         Jyy = 2.64e-3
         Jzz = 4.96e-3
         g = 9.8
         L = [m, Jxx, Jyy, Jzz, g]
 
-        # Initial conditions
+        # Initial conditions of the system
         pos_0 = np.array([3.0, 1.0, 3.0], dtype=np.double)
         vel_0 = np.array([0.0, 0.0, 0.0], dtype=np.double)
         angle_0 = 0.0
@@ -162,7 +175,7 @@ if __name__ == '__main__':
         quat_0 = axisToquaternion(angle_0, axis_0)
         omega_0 = np.array([0.0, 0.0, 0.0], dtype=np.double)
 
-        # Vector of initial conditions
+        # Generalized vector of initial conditions
         x_0 = np.hstack((pos_0, vel_0, quat_0, omega_0))
 
         # Simulation

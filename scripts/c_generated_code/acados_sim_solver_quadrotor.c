@@ -77,7 +77,7 @@ int quadrotor_acados_sim_create(sim_solver_capsule * capsule)
     bool tmp_bool;
 
     
-    double Tsim = 0.00967741935483871;
+    double Tsim = 0.045454545454545456;
 
     
     // explicit ode
@@ -140,7 +140,7 @@ int quadrotor_acados_sim_create(sim_solver_capsule * capsule)
  
     tmp_int = 4;
     sim_opts_set(quadrotor_sim_config, quadrotor_sim_opts, "num_stages", &tmp_int);
-    tmp_int = 1;
+    tmp_int = 3;
     sim_opts_set(quadrotor_sim_config, quadrotor_sim_opts, "num_steps", &tmp_int);
     tmp_bool = 0;
     sim_opts_set(quadrotor_sim_config, quadrotor_sim_opts, "jac_reuse", &tmp_bool);
