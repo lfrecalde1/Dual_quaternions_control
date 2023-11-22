@@ -36,6 +36,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     # Control actions
     F = np.zeros((1, t.shape[0] - N_prediction), dtype=np.double)
     M = np.zeros((3, t.shape[0] - N_prediction), dtype=np.double)
+    u = np.zeros((4, t.shape[0] - N_prediction), dtype=np.double)
 
     # Desired states
     xref = np.zeros((13, t.shape[0]), dtype = np.double)
@@ -44,7 +45,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     xref[8, :] = 0.0
     xref[9, :] = 0.0
 
-    # Constraints Actions
+    # Actions Constraints
     F_max = L[0]*L[4] + 10
     F_min = 0
     tau_1_max = 0.1
@@ -103,14 +104,15 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
         aux_control = acados_ocp_solver.get(0, "u")
         F[:, k] = aux_control[0]
         M[:, k] = aux_control[1:4]
-        u = np.array([F[:, k], M[0, k], M[1, k], M[2, k]])
+        u[0, k] = F[:, k]
+        u[1:4, k] = M[:, k]
 
         # run time
         toc_solver = time.time() - tic
         delta_t[:, k] = toc_solver
 
         acados_integrator.set("x", x[:, k])
-        acados_integrator.set("u", u)
+        acados_integrator.set("u", u[:, k])
 
         status_integral = acados_integrator.solve()
         xcurrent = acados_integrator.get("x")

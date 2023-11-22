@@ -1,5 +1,5 @@
 from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver
-from export_ode_model import quadrotorModel
+from export_ode_model import quadrotorModel, conjugate_quaternion, quat_multiply
 from casadi import Function, MX, vertcat, sin, cos
 import numpy as np
 
@@ -26,7 +26,7 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
     Q = MX.zeros(3, 3)
     Q[0, 0] = 1.0
     Q[1, 1] = 1.0
-    Q[2, 2] = 1.0
+    Q[2, 2] = 10.0
 
     R = MX.zeros(4, 4)
     R[0, 0] = 1/F_max
@@ -38,10 +38,19 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
     ocp.cost.cost_type = "EXTERNAL"
     ocp.cost.cost_type_e = "EXTERNAL"
 
+    # Definition of the cost functions
 
+    # Position error
     error_position = ocp.p[0:3] - model.x[0:3]
-    ocp.model.cost_expr_ext_cost = 1*(error_position.T @ Q @error_position) + 1.5*(model.u[0:4].T @ R @ model.u[0:4])
-    ocp.model.cost_expr_ext_cost_e = 1*(error_position.T @ Q @error_position)
+
+    # Quaternion error
+    q_d = ocp.p[6:10]
+    q = model.x[6:10]
+    q_d_c = conjugate_quaternion(q_d)
+    q_error = quat_multiply(q, q_d_c)
+
+    ocp.model.cost_expr_ext_cost = 1*(error_position.T @ Q @error_position) + 0.8*(model.u[0:4].T @ R @ model.u[0:4]) + 1*((1 - q_error[0])**2 + q_error[1:4].T@q_error[1:4])
+    ocp.model.cost_expr_ext_cost_e = 1*(error_position.T @ Q @error_position)+ 1*((1 - q_error[0]) + q_error[1:4].T@q_error[1:4])
     
     ocp.parameter_values = np.zeros(nx)
 

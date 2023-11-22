@@ -187,4 +187,46 @@ def quadrotorModel(L: list)-> AcadosModel:
     model.name = model_name
     return model, f_system
 
+def conjugate_quaternion(q):
+    # Compute the conjugate of a specified quaternion
+    # INPUT
+    # q                                              - quaternion
+    # OUTPUT 
+    # q_c                                            - conjugate quaternion
+    a1 = q[0]
+    b1 = -q[1]
+    c1 = -q[2]
+    d1 = -q[3]
+    q_c = vertcat(a1, b1, c1, d1)
+    return q_c
+def matrix_q(q):
+    # Compute Q matrix for quaternion multiplication
+    #INPUT
+    # q                                                - quaternion
+    #OUTPUT  
+    # Q                                                - quaternion Matrix
+    a1 = q[0]
+    b1 = q[1]
+    c1 = q[2]
+    d1 = q[3]
+
+    Q = ca.vertcat(
+        ca.horzcat(a1, -b1, -c1, -d1),
+        ca.horzcat(b1, a1, -d1, c1),
+        ca.horzcat(c1, d1, a1, -b1),
+        ca.horzcat(d1, -c1, b1, a1))
+
+    return Q
+def quat_multiply(q1, q2):
+    # Multiplication between quaternions
+    # INPUT
+    # q1                              - quaternion 1
+    # q2                              - quaternion 2
+    #OUTPUT
+    # q1q2                            - q1 multiply q2
+    Q = matrix_q(q1)
+    q1q2 = Q@q2
+    return q1q2
+
+
 
