@@ -3,8 +3,8 @@
 clc, clear all, close all;
 
 %% Time definition
-ts = 0.05;
-t_final = 30;
+ts = 0.01;
+t_final = 20;
 t = (0:ts:t_final);
 
 %% System Parameters
@@ -14,14 +14,14 @@ Jyy = 2.64e-3;
 Jzz = 4.96e-3;
 g = 9.8;
 L_drone = [m, Jxx, Jyy, Jzz, g];
-N = 10;
+N = 20;
 
 %% Initial Conditions of the system
 
-pos = [0.0; 0.0; 0.0];                  %% qd pos
+pos = [3.0; 1.0; 3.0];                  %% qd pos
 vel = [0.0; 0.0; 0.0];                  %% qd vel
-quat = rotation_quaternion(3.81, [0.4896; 0.2032; 0.8480]);           %% qd quat
-%quat = rotation_quaternion(0, [0.0; 0.0; 1]);           %% qd quat
+%quat = rotation_quaternion(3.81, [0.4896; 0.2032; 0.8480]);           %% qd quat
+quat = rotation_quaternion(0, [0.0; 0.0; 1]);           %% qd quat
 omega = [0.0; 0.0; 0.0;];               %% qd omega
 
 %% Quadrotor generalized vector
@@ -37,23 +37,23 @@ orientacion_aux(:, 1) = (quat2eul(x(7:10, 1)','ZYX'))';
 euler_angles(:, 1) = [orientacion_aux(3, 1);orientacion_aux(2, 1);orientacion_aux(1, 1)];
 
 %% Control Variables
-F = 0*ones(1, length(t) -N);
-M = 0*ones(3, length(t) -N);
+F = 0*ones(1, length(t));
+M = 0*ones(3, length(t));
 
 %% Desired trajectory 
 [hxd, hyd, hzd, hpsid, hxdp, hydp, hzdp, hpsidp] = Trajectory(3, t, 5);
 psi_d = Angulo(hpsid);
+
 %% Desired angular velocity
 w_d = 0*ones(3, length(t));
-w_d(3, :) = 1*cos(0.5*t); 
-quat_d(1:4, 1) = rotation_quaternion(pi/2, [0.0; 0.0; 1]);
+quat_d(1:4, 1) = rotation_quaternion(0, [0.0; 0.0; 1]);
 
 %% Get desired Quaternio
 [quat_d] = desired_quaternions_values(quat_d, w_d, t, ts);
 %% GENERALIZED DESIRED SIGNALS
-hd = [hxd;...
-      hyd;...
-      hzd];
+hd = [0*hxd;...
+      0*hyd;...
+      0*hzd];
 
 %% Optimization problem
 bounded = [m*g + 10; 0; 1; -1; 1; -1; 1; -1];
@@ -69,10 +69,10 @@ for k = 1:length(t)-N
     tic;
     [H0, control] = NMPC(x(:, k), hd, quat_d, k, H0, vc, args, solver ,N);
     toc
-    %F(1, k) = control(1,1);
-    %M(1, k) = control(1,2);
-    %M(2, k) = control(1,3);
-    %M(3, k) = control(1,4);
+    F(1, k) = control(1,1);
+    M(1, k) = control(1,2);
+    M(2, k) = control(1,3);
+    M(3, k) = control(1,4);
     
     %% System Evolution
     x(:, k +1) = system_simulation(x(:, k), F(:, k), M(:, k), L_drone, ts);
@@ -81,7 +81,7 @@ for k = 1:length(t)-N
     euler_angles(:, k+1) = [orientacion_aux(3, k+1);orientacion_aux(2, k+1);orientacion_aux(1, k+1)];
     
     
-    %% Optimal Values control and states
+    % Optimal Values control and states
     vc = [control(2:end,:);control(end,:)];
     H0 = [H0(2:end,:);H0(end,:)];
 end

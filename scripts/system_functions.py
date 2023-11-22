@@ -18,7 +18,7 @@ def quatTorot(quat: np.ndarray)->np.ndarray:
     q_hat[2, 0] = -q[2]
     q_hat[2, 1] = q[1]
 
-    R = np.eye(3) + 2 * q_hat@q_hat + 2 * q[0] * q_hat
+    R = np.eye(3) + 2 * (q_hat@q_hat) + 2 * q[0] * q_hat
     return R
 def quatdot(quat: np.ndarray, omega: np.ndarray)-> np.ndarray:
     # Quaternion evolution guaranteeing norm 1.
@@ -90,7 +90,7 @@ def systemdynamics(x: np.ndarray, F: np.ndarray, M: np.ndarray, L: list)-> np.nd
     # Angular
     qdot = quatdot(quat, omega)
     aux = J@omega
-    aux_cross = np.cross(omega, aux).reshape((3, 1))
+    aux_cross = np.cross(omega, aux)
     aux_cross = aux_cross.reshape((3, 1))
     omega_dot = np.linalg.inv(J)@(M - aux_cross)
     
@@ -133,3 +133,22 @@ def f_d(x: np.ndarray, F: np.ndarray, M: np.ndarray, ts: float, L: list):
     k4 = systemdynamics(x+(ts)*k3, F, M, L)
     x_k = x + (ts/6)*(k1 +2*k2 +2*k3 +k4)
     return x_k
+
+def f_d_casadi(x: np.ndarray, F: np.ndarray, M: np.ndarray, ts: float, f_s):
+    # Compute Runge Kutta
+    # INPUT
+    # x_k                                                          - states of the system (13, )
+    # F_k                                                          - Force (1, )
+    # M_k                                                          - Torques(3, )
+    # ts                                                           - sample time
+    # f_s                                                          - casadi dynamics
+    # OUTPUT                           
+    # x_k+1                                                        - The rate of change of flow in the system. (13, )
+
+    k1 = f_s(x, F, M)
+    k2 = f_s(x+(ts/2)*k1, F, M)
+    k3 = f_s(x+(ts/2)*k2, F, M)
+    k4 = f_s(x+(ts)*k3, F, M)
+    x_k = x + (ts/6)*(k1 +2*k2 +2*k3 +k4)
+    aux_x = np.array(x_k[:, 0]).reshape(13, )
+    return aux_x
