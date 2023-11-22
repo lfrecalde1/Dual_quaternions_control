@@ -89,14 +89,18 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     ocp = create_ocp_solver(x[:, 0], N_prediction, t_N, F_max, F_min, tau_1_max, tau_1_min, tau_2_max, tau_2_min, tau_3_max, taux_3_min, L)
 
     # Creation of the optimization problem
-    solver_json = 'acados_ocp_' + model.name + '.json'
+    #solver_json = 'acados_ocp_' + model.name + '.json'
 
-    # These parameters can be modified in order to avoid the creation of a new optimal control problem 
-    AcadosOcpSolver.generate(ocp, json_file=solver_json)
-    AcadosOcpSolver.build(ocp.code_export_directory, with_cython=True)
+    # These parameters can be modified in order to avoid the creation of a new optimal control problem  Cython
+    #AcadosOcpSolver.generate(ocp, json_file=solver_json)
+    #AcadosOcpSolver.build(ocp.code_export_directory, with_cython=True)
 
     # Assignation of the optimal control problem
-    acados_ocp_solver = AcadosOcpSolver.create_cython_solver(solver_json)
+    #acados_ocp_solver = AcadosOcpSolver.create_cython_solver(solver_json)
+
+    # No Cython
+    acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= True, generate= True)
+
     
     # Integration using Acados
     acados_integrator = AcadosSimSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json")
