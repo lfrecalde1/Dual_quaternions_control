@@ -154,7 +154,7 @@ end
 %% Cost final 
 
 %% FINAL COST
-obj = obj_he + 0.00001*obj_u + 0.01*obj_quat;
+obj = obj_he + 0.0001*obj_u + 0.01*obj_quat;
 
 % se crea el vector de desiscion solo de una columna
 OPT_variables = [reshape(X,13*(N+1),1);reshape(U,4*N,1)];

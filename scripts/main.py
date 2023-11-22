@@ -2,8 +2,8 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 from fancy_plots import fancy_plots_3, fancy_plots_4
-from fancy_plots import plot_states_position, plot_states_quaternion, plot_control_actions
-from system_functions import f_d, axisToquaternion, f_d_casadi, ref_trajectory, compute_desired_quaternion
+from fancy_plots import plot_states_position, plot_states_quaternion, plot_control_actions, plot_states_euler
+from system_functions import f_d, axisToquaternion, f_d_casadi, ref_trajectory, compute_desired_quaternion, get_euler_angles
 from export_ode_model import quadrotorModel
 from acados_template import AcadosOcpSolver, AcadosSimSolver
 from nmpc import create_ocp_solver
@@ -39,6 +39,10 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     x = np.zeros((13, t.shape[0] + 1 - N_prediction), dtype=np.double)
     x[:, 0] = x_0
 
+    # Euler angles of the system
+    euler = np.zeros((3, t.shape[0] + 1 - N_prediction), dtype=np.double)
+    euler[:, 0] = get_euler_angles(x[6:10, 0])
+
     # Control actions
     F = np.zeros((1, t.shape[0] - N_prediction), dtype=np.double)
     M = np.zeros((3, t.shape[0] - N_prediction), dtype=np.double)
@@ -59,10 +63,14 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     q_d = compute_desired_quaternion(theta, theta_p, t, ts)
 
     # Desired quaternion
-    xref[6, :] = q_d[0]
-    xref[7, :] = q_d[1]
-    xref[8, :] = q_d[2]
-    xref[9, :] = q_d[3]
+    xref[6, :] = q_d[0, :]
+    xref[7, :] = q_d[1, :]
+    xref[8, :] = q_d[2, :]
+    xref[9, :] = q_d[3, :]
+
+    # Desired Euler angles
+    euler_d = np.zeros((3, t.shape[0]), dtype=np.double)
+    euler_d[2, :] = theta
 
     # Constraints on control actions
     F_max = L[0]*L[4] + 10
@@ -142,6 +150,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
 
         # System evolution
         x[:, k+1] = xcurrent
+        euler[:, k+1] = get_euler_angles(x[6:10, k+1])
 
     # Results
     # Position
@@ -157,6 +166,10 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     # Control Actions
     fig13, ax13, ax23, ax33, ax43 = fancy_plots_4()
     plot_control_actions(fig13, ax13, ax23, ax33, ax43, F, M, t, "Control Actions of the System")
+    plt.show()
+
+    fig14, ax14, ax24, ax34 = fancy_plots_3()
+    plot_states_euler(fig14, ax14, ax24, ax34, euler[0:3, :], euler_d[0:3, :], t, "Euler Angles of the System")
     plt.show()
     None
 

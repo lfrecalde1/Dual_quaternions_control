@@ -182,7 +182,10 @@ def ref_trajectory(t):
     xd_pp = -radius * omega * omega * np.cos(omega * t)
     yd_pp = -radius * omega * omega * np.sin(omega * t)
 
+    # Compute angular displacement
     theta = np.arctan2(yd_p, xd_p)
+
+    # Compute angular velocity
     theta_p = (1. / ((yd_p / xd_p) ** 2 + 1)) * ((yd_pp * xd_p - yd_p * xd_pp) / xd_p ** 2)
     theta_p[0] = 0
 
@@ -190,6 +193,9 @@ def ref_trajectory(t):
 
 def desired_quaternion(q, omega, ts):
     # Compute the the rate of change of the quaternion
+    # INPUT 
+    # q                                                                                       - quaternion
+    # omega                                                                                   - angular velocity
     k1 = quatdot(q, omega)
     k2 = quatdot(q+(ts/2)*k1.reshape((4,)), omega)
     k3 = quatdot(q+(ts/2)*k2.reshape((4,)), omega)
@@ -211,7 +217,7 @@ def compute_desired_quaternion(theta, theta_p, t, ts):
     omega = np.zeros((3, t.shape[0]), dtype = np.double)
 
     # Euler angles to quaternion
-    r = R.from_euler('xyz',[0, 0, theta[0]], degrees=False)
+    r = R.from_euler('zyx',[theta[0], 0, 0], degrees=False)
     r_q = r.as_quat()
 
     # Initial conditions
@@ -227,3 +233,13 @@ def compute_desired_quaternion(theta, theta_p, t, ts):
     for k in range(0, t.shape[0]-1):
         q[:, k+1] = desired_quaternion(q[:, k], omega[:, k], ts)
     return  q
+def get_euler_angles(q):
+    # Compute euler angles
+    # INPUTS
+    # q                                           - quaternion
+    # OUTPUT
+    # euler                                       - euler angles
+    x = np.array([q[1], q[2], q[3], q[0]], dtype=np.double)
+    r = R.from_quat(x)
+    euler = r.as_euler('zyx', degrees=False)
+    return euler
