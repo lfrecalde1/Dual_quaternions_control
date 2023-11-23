@@ -62,8 +62,8 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     # Desired states
     xref = np.zeros((13, t.shape[0]), dtype = np.double)
     # Desired position of the system
-    xd, yd, zd, theta, theta_p = ref_trajectory(t)
-    #xd, yd, zd, theta, theta_p = ref_trajectory_agresive(t, 40)
+    #xd, yd, zd, theta, theta_p = ref_trajectory(t)
+    xd, yd, zd, theta, theta_p = ref_trajectory_agresive(t, 40)
 
     xref[0, :] = xd
     xref[1, :] = yd
