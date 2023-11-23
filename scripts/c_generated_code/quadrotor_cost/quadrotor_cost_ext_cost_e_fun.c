@@ -208,8 +208,8 @@ static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw,
   w2 = 1.5000000000000000e+00;
   /* #38: (@22[4] = @2) */
   for (rr=w22+4, ss=(&w2); rr!=w22+5; rr+=1) *rr = *ss++;
-  /* #39: @2 = 30 */
-  w2 = 30.;
+  /* #39: @2 = 10 */
+  w2 = 10.;
   /* #40: (@22[8] = @2) */
   for (rr=w22+8, ss=(&w2); rr!=w22+9; rr+=1) *rr = *ss++;
   /* #41: @1 = mac(@21,@22,@1) */

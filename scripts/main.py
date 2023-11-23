@@ -62,8 +62,8 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     # Desired states
     xref = np.zeros((13, t.shape[0]), dtype = np.double)
     # Desired position of the system
-    #xd, yd, zd theta, theta_p = ref_trajectory(t)
-    xd, yd, zd, theta, theta_p = ref_trajectory_agresive(t, 10)
+    xd, yd, zd, theta, theta_p = ref_trajectory(t)
+    #xd, yd, zd, theta, theta_p = ref_trajectory_agresive(t, 40)
 
     xref[0, :] = xd
     xref[1, :] = yd
@@ -83,7 +83,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     euler_d[2, :] = theta
 
     # Constraints on control actions
-    F_max = L[0]*L[4] + 10
+    F_max = L[0]*L[4] + 20
     F_min = 0
     tau_1_max = 0.1
     tau_1_min = -0.1
@@ -187,7 +187,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
         mesh_marker_msg, aux_trajectory = set_marker(mesh_marker_msg, xref[:, k+1], aux_trajectory)
         send_odom_msg(odom_msg, pub)
         send_marker_msg(mesh_marker_msg, pub_marker)
-        #rospy.loginfo(message_ros + str(toc_solver))
+        rospy.loginfo(message_ros + str(toc_solver))
 
     # Results
     # Position
@@ -214,7 +214,7 @@ if __name__ == '__main__':
     try: #################################### Simulation  #####################################################
         # Time parameters
         ts = 0.05
-        t_f = 30
+        t_f = 20
         t_N = 0.5
 
         # Parameters of the system  (mass, inertial matrix, gravity)

@@ -252,20 +252,27 @@ def quaternion_to_axis_angle(q):
     # OUTPUT 
     # theta                          - angle rotation
     # axis                           - axis where the rotation was executed
-
-    q = q / ca.norm_2(q)
+    # Normalize the quaternion
+    q_norm = q / ca.norm_2(q)
 
     # Extract the scalar and vector parts
-    scalar_part = q[0]
-    vector_part = q[1:4]
+    scalar_part = q_norm[0]
+    vector_part = q_norm[1:4]
 
     # Compute the rotation angle (in radians)
-    theta = 2 * ca.acos(scalar_part)
+    theta = ca.atan2(ca.norm_2(vector_part), scalar_part)
 
     # Compute the rotation axis
     axis = vector_part / ca.norm_2(vector_part)
 
-    return theta, axis
+    # Initialize the output
+    #output = axis * theta
 
+    # Check if theta is close to zero
+    output = ca.if_else(ca.fabs(theta) < 2.2204e-3,
+                        (vector_part / scalar_part) * (1 - ((ca.norm_2(vector_part)**2) / (3 * scalar_part**2))),
+                        axis * theta)
+
+    return output
 
 

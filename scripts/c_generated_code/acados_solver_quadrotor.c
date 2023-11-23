@@ -525,7 +525,7 @@ void quadrotor_acados_create_5_set_nlp_in(quadrotor_solver_capsule* capsule, con
     double* lbu = lubu;
     double* ubu = lubu + NBU;
     
-    ubu[0] = 19.8;
+    ubu[0] = 29.8;
     lbu[1] = -0.1;
     ubu[1] = 0.1;
     lbu[2] = -0.1;

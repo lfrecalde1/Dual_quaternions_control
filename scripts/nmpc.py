@@ -41,7 +41,7 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
     Q = MX.zeros(3, 3)
     Q[0, 0] = 1.5
     Q[1, 1] = 1.5
-    Q[2, 2] = 30.0
+    Q[2, 2] = 10.0
 
     # Control effort using gain matrices
     R = MX.zeros(4, 4)
@@ -65,9 +65,12 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
     q_error = f_error(q_error_aux)
 
     # Log quaternion
-    theta, axis = quaternion_to_axis_angle(q_error)
+    value = quaternion_to_axis_angle(q_error)
 
     # Definition of the cost functions 
+    #ocp.model.cost_expr_ext_cost = 1*(error_position.T @ Q @error_position) + 1*(model.u[0:4].T @ R @ model.u[0:4]) + 0.2*(value.T@value)
+    #ocp.model.cost_expr_ext_cost_e = 1*(error_position.T @ Q @error_position)+ 0.2*(value.T@value)
+
     ocp.model.cost_expr_ext_cost = 1*(error_position.T @ Q @error_position) + 1*(model.u[0:4].T @ R @ model.u[0:4]) + 1*((1 - q_error[0]) + q_error[1:4].T@q_error[1:4])
     ocp.model.cost_expr_ext_cost_e = 1*(error_position.T @ Q @error_position)+ 1*((1 - q_error[0]) + q_error[1:4].T@q_error[1:4])
 

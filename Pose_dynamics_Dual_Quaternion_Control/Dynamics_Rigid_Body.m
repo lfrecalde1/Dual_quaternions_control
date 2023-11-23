@@ -4,7 +4,7 @@ clc, clear all, close all;
 
 %% Time definition
 ts = 0.01;
-t_final = 2;
+t_final = 80;
 t = (0:ts:t_final);
 
 %% System Values Dyanmics
@@ -29,7 +29,7 @@ r_o = rotation_quaternion(angle_0, [0.4896; 0.2032; 0.8480]);
 h(:,1) =  pose_dual(t_0,r_o);
 p(:,1) = get_traslatation_dual(h(:, 1));
 r(:,1) = get_rotation_dual(h(:, 1));
-[Angle_axis(:, 1)] = quat2axang(r(:, 1)');
+%[Angle_axis(:, 1)] = quat2axang(r(:, 1)');
 orientacion_aux(:, 1) = (quat2eul(r(:, 1)','ZYX'))';
 euler_angles(:, 1) = [orientacion_aux(3, 1);orientacion_aux(2, 1);orientacion_aux(1, 1)];
 
@@ -93,7 +93,7 @@ for k = 1:length(t)-1
     %% Angles Auxiliar variables
     orientacion_aux(:, k+1) = (quat2eul(r(:, k+1)','ZYX'))';
     euler_angles(:, k+1) = [orientacion_aux(3, k+1);orientacion_aux(2, k+1);orientacion_aux(1, k+1)];
-    [Angle_axis(:, k+1)] = quat2axang(r(:, k+1)');
+    %[Angle_axis(:, k+1)] = quat2axang(r(:, k+1)');
 end
 
 figure
