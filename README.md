@@ -18,5 +18,6 @@ Dynamics_Rigid_Body.m
 ## Run NMPC using Acados
 Inside the folder scripts execute the following script:
 ```bash
+roscore
 main.py
 ```
