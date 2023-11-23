@@ -1,6 +1,9 @@
 # Dual Quaternions Control
 
 This repository contains the control of rigid bodies based on Dual Quaternions.
+<p float="left">
+    <img src="fast.gif" width="600"  />
+ </p>
 
 ## Run Differential Kinematics Control Based on Dual Quaternions
 
