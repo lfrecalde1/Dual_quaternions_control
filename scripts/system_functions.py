@@ -203,20 +203,20 @@ def ref_trajectory_agresive(t, mul):
     # theta                                            - desired orientation
     # theta_p                                          - desired angular velocity
 
-    Q = 0.2
+    Q = 0.01
     # Compute desired reference x y z
-    xd = 4 * np.sin(mul * 0.04* t)
-    yd = 4 * np.sin(mul * 0.08 * t)
-    zd = 2.5 * np.sin(Q*t) + 5
+    xd = 2 * np.sin(mul * 0.04* t)
+    yd = 2 * np.sin(mul * 0.08 * t)
+    zd = 0 * np.sin(Q*t) + 0
 
     # Compute velocities
-    xd_p = 4*mul*0.04*np.cos(mul*0.04*t)
-    yd_p = 4*mul*0.08*np.cos(mul*0.08*t)
-    zd_p = 2.5*Q*np.cos(Q*t)
+    xd_p = 2*mul*0.04*np.cos(mul*0.04*t)
+    yd_p = 2*mul*0.08*np.cos(mul*0.08*t)
+    zd_p = 0*Q*np.cos(Q*t)
 
     # Compute acceleration
-    xd_pp = -4*mul*mul*0.04*0.04*np.sin(mul*0.04*t)
-    yd_pp = -4*mul*mul*0.08*0.08*np.sin(mul*0.08*t);  
+    xd_pp = -2*mul*mul*0.04*0.04*np.sin(mul*0.04*t)
+    yd_pp = -2*mul*mul*0.08*0.08*np.sin(mul*0.08*t);  
 
     # Compute angular displacement
     theta = np.arctan2(yd_p, xd_p)

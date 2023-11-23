@@ -62,12 +62,12 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     # Desired states
     xref = np.zeros((13, t.shape[0]), dtype = np.double)
     # Desired position of the system
-    #xd, yd, theta, theta_p = ref_trajectory(t)
-    xd, yd, theta, theta_p = ref_trajectory_agresive(t, 7)
+    #xd, yd, zd theta, theta_p = ref_trajectory(t)
+    xd, yd, zd, theta, theta_p = ref_trajectory_agresive(t, 10)
 
     xref[0, :] = xd
     xref[1, :] = yd
-    xref[2, :] = 0.0
+    xref[2, :] = zd
 
     # Compute desired quaternion
     q_d = compute_desired_quaternion(theta, theta_p, t, ts)
@@ -214,7 +214,7 @@ if __name__ == '__main__':
     try: #################################### Simulation  #####################################################
         # Time parameters
         ts = 0.05
-        t_f = 60
+        t_f = 30
         t_N = 0.5
 
         # Parameters of the system  (mass, inertial matrix, gravity)
