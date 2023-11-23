@@ -21,3 +21,13 @@ Inside the folder scripts execute the following script:
 roscore
 main.py
 ```
+## Requirements
+The NMPC has the following requirements
+```bash
+pip install numpy
+pip install scipy==1.7.2
+pip install pyyaml
+pip install -U rospkg
+pip install empy
+latex
+```
