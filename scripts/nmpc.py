@@ -41,7 +41,7 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
     Q = MX.zeros(3, 3)
     Q[0, 0] = 1.5
     Q[1, 1] = 1.5
-    Q[2, 2] = 15.0
+    Q[2, 2] = 30.0
 
     # Control effort using gain matrices
     R = MX.zeros(4, 4)
@@ -108,7 +108,7 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
     ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM" 
     ocp.solver_options.hessian_approx = "GAUSS_NEWTON"  
     ocp.solver_options.integrator_type = "ERK"
-    ocp.solver_options.nlp_solver_type = "SQP"
+    ocp.solver_options.nlp_solver_type = "SQP_RTI"
 
     ocp.solver_options.sim_method_num_stages = 4
     ocp.solver_options.sim_method_num_steps = 3

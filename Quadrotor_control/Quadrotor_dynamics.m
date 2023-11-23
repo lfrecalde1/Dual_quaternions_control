@@ -4,7 +4,7 @@ clc, clear all, close all;
 
 %% Time definition
 ts = 0.01;
-t_final = 20;
+t_final = 5;
 t = (0:ts:t_final);
 
 %% System Parameters

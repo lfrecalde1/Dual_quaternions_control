@@ -4,13 +4,17 @@ import matplotlib.pyplot as plt
 from fancy_plots import fancy_plots_3, fancy_plots_4
 from fancy_plots import plot_states_position, plot_states_quaternion, plot_control_actions, plot_states_euler
 from system_functions import f_d, axisToquaternion, f_d_casadi, ref_trajectory, compute_desired_quaternion, get_euler_angles
+from system_functions import send_odom_msg, set_odom_msg, init_marker, set_marker, send_marker_msg, ref_trajectory_agresive
 from export_ode_model import quadrotorModel
 from acados_template import AcadosOcpSolver, AcadosSimSolver
 from nmpc import create_ocp_solver
+import rospy
+from nav_msgs.msg import Odometry
+from visualization_msgs.msg import Marker
 
 
 
-def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
+def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_marker)-> None:
     # DESCRIPTION
     # simulation of a quadrotor using a NMPC as a controller
     # INPUTS
@@ -26,6 +30,11 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
 
     # Simulation time definition
     t = np.arange(0, t_f + ts, ts)
+
+    # Ros time definitions
+    hz = int(1/ts)
+    loop_rate = rospy.Rate(hz)
+
 
     # Prediction Node of the NMPC formulation
     N = np.arange(0, t_N + ts, ts)
@@ -53,7 +62,8 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     # Desired states
     xref = np.zeros((13, t.shape[0]), dtype = np.double)
     # Desired position of the system
-    xd, yd, theta, theta_p = ref_trajectory(t)
+    #xd, yd, theta, theta_p = ref_trajectory(t)
+    xd, yd, theta, theta_p = ref_trajectory_agresive(t, 7)
 
     xref[0, :] = xd
     xref[1, :] = yd
@@ -115,10 +125,25 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
     for stage in range(N_prediction):
         acados_ocp_solver.set(stage, "u", np.zeros((nu,)))
 
+    # Ros message
+    rospy.loginfo_once("Quadrotor Simulation")
+    message_ros = "Quadrotor Simulation "
+
+    # Odometry message
+    odom_msg = Odometry()
+
+    # Set Odom Message
+    odom_msg = set_odom_msg(odom_msg, x[:, 0])
+    send_odom_msg(odom_msg, pub)
+
+    # Marker Message
+
+    mesh_marker_msg = Marker()
+    mesh_marker_msg, aux_trajectory = init_marker(mesh_marker_msg, xref[:, 0])
 
     # Loop simulation
     for k in range(0, t.shape[0] - N_prediction):
-        tic = time.time()
+        tic = rospy.get_time()
         # Control Law Acados
         acados_ocp_solver.set(0, "lbx", x[:, k])
         acados_ocp_solver.set(0, "ubx", x[:, k])
@@ -142,7 +167,8 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
         u[1:4, k] = M[:, k]
 
         # run time
-        toc_solver = time.time() - tic
+        loop_rate.sleep()
+        toc_solver = rospy.get_time() - tic
         delta_t[:, k] = toc_solver
 
         # Get states of the system using acados (ERK)
@@ -155,6 +181,13 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list)-> None:
         # System evolution
         x[:, k+1] = xcurrent
         euler[:, k+1] = get_euler_angles(x[6:10, k+1])
+
+        # Send msg to Ros
+        odom_msg = set_odom_msg(odom_msg, x[:, k+1])
+        mesh_marker_msg, aux_trajectory = set_marker(mesh_marker_msg, xref[:, k+1], aux_trajectory)
+        send_odom_msg(odom_msg, pub)
+        send_marker_msg(mesh_marker_msg, pub_marker)
+        #rospy.loginfo(message_ros + str(toc_solver))
 
     # Results
     # Position
@@ -181,7 +214,7 @@ if __name__ == '__main__':
     try: #################################### Simulation  #####################################################
         # Time parameters
         ts = 0.05
-        t_f = 30
+        t_f = 60
         t_N = 0.5
 
         # Parameters of the system  (mass, inertial matrix, gravity)
@@ -193,7 +226,7 @@ if __name__ == '__main__':
         L = [m, Jxx, Jyy, Jzz, g]
 
         # Initial conditions of the system
-        pos_0 = np.array([2.0, 2.0, 1.0], dtype=np.double)
+        pos_0 = np.array([0.0, 0.0, 4.0], dtype=np.double)
         vel_0 = np.array([0.0, 0.0, 0.0], dtype=np.double)
         angle_0 = 3.81
         axis_0 = [0.4896, 0.2032, 0.8480]
@@ -203,8 +236,18 @@ if __name__ == '__main__':
         # Generalized vector of initial conditions
         x_0 = np.hstack((pos_0, vel_0, quat_0, omega_0))
 
+        # Ros Definition
+        rospy.init_node("quadrotor",disable_signals=True, anonymous=True)
+
+        # Publisher Info
+        odomety_topic = "/quadrotor/odom"
+        odometry_publisher = rospy.Publisher(odomety_topic, Odometry, queue_size = 1, tcp_nodelay=True)
+
+        marker_topic = "/quadrotor/marker"
+        marker_publisher = rospy.Publisher(marker_topic, Marker, queue_size=10, tcp_nodelay=True)
+
         # Simulation
-        main(ts, t_f, t_N, x_0, L)
+        main(ts, t_f, t_N, x_0, L, odometry_publisher, marker_publisher)
 
     except(KeyboardInterrupt):
         print("Error System")

@@ -1,5 +1,8 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+import rospy
+from visualization_msgs.msg import Marker
+from geometry_msgs.msg import Pose, Point, Quaternion
 def quatTorot(quat: np.ndarray)->np.ndarray:
     # Function to transform a quaternion to a rotational matrix
     # INPUT
@@ -189,7 +192,40 @@ def ref_trajectory(t):
     theta_p = (1. / ((yd_p / xd_p) ** 2 + 1)) * ((yd_pp * xd_p - yd_p * xd_pp) / xd_p ** 2)
     theta_p[0] = 0
 
-    return xd, yd, theta, theta_p
+    return xd, yd, zd, theta, theta_p
+
+def ref_trajectory_agresive(t, mul):
+    # Compute the desired Trajecotry of the system
+    # INPUT 
+    # t                                                - time
+    # OUTPUT
+    # xd, yd, zd                                       - desired position
+    # theta                                            - desired orientation
+    # theta_p                                          - desired angular velocity
+
+    Q = 0.2
+    # Compute desired reference x y z
+    xd = 4 * np.sin(mul * 0.04* t)
+    yd = 4 * np.sin(mul * 0.08 * t)
+    zd = 2.5 * np.sin(Q*t) + 5
+
+    # Compute velocities
+    xd_p = 4*mul*0.04*np.cos(mul*0.04*t)
+    yd_p = 4*mul*0.08*np.cos(mul*0.08*t)
+    zd_p = 2.5*Q*np.cos(Q*t)
+
+    # Compute acceleration
+    xd_pp = -4*mul*mul*0.04*0.04*np.sin(mul*0.04*t)
+    yd_pp = -4*mul*mul*0.08*0.08*np.sin(mul*0.08*t);  
+
+    # Compute angular displacement
+    theta = np.arctan2(yd_p, xd_p)
+
+    # Compute angular velocity
+    theta_p = (1. / ((yd_p / xd_p) ** 2 + 1)) * ((yd_pp * xd_p - yd_p * xd_pp) / xd_p ** 2)
+    theta_p[0] = 0
+
+    return xd, yd, zd, theta, theta_p
 
 def desired_quaternion(q, omega, ts):
     # Compute the the rate of change of the quaternion
@@ -243,3 +279,68 @@ def get_euler_angles(q):
     r = R.from_quat(x)
     euler = r.as_euler('zyx', degrees=False)
     return euler
+
+def set_odom_msg(msg, x):
+    # Set the odometry of the quadrotor
+    # INPUT 
+    # msg                                                               - odometry msg
+    # x                                                                 - states of the system
+    # OUTPUT
+    # msg                                                               - odometry msg
+    msg.header.stamp = rospy.Time.now()
+    msg.header.frame_id = "world"
+    #msg.child_frame_id = "blue_robot_base"
+
+    msg.pose.pose.position.x = x[0]
+    msg.pose.pose.position.y = x[1]
+    msg.pose.pose.position.z = x[2]
+
+    msg.pose.pose.orientation.x = x[7]
+    msg.pose.pose.orientation.y = x[8]
+    msg.pose.pose.orientation.z = x[9]
+    msg.pose.pose.orientation.w = x[6]
+
+    msg.twist.twist.linear.x = x[3]
+    msg.twist.twist.linear.y = x[4]
+    msg.twist.twist.linear.z = x[5]
+
+    msg.twist.twist.angular.x = x[10]
+    msg.twist.twist.angular.y = x[11]
+    msg.twist.twist.angular.z = x[12]
+    return msg
+
+def send_odom_msg(msg, pub):
+    # Send Odometry to ROS framework
+    # INPUT 
+    # msg                                                                            - odometry msg
+    # pub                                                                            - odometry publisher
+    pub.publish(msg)
+    return None
+
+def init_marker(marker, x):
+    marker.header.frame_id = "world"  # Set the frame ID
+    marker.type = Marker.LINE_STRIP
+    marker.action = Marker.ADD
+    marker.scale.x = 0.01  # Scale of the mesh
+    marker.scale.y = 0.01
+    marker.scale.z = 0.01
+    marker.color.a = 1.0  # Alpha (transparency)
+    marker.color.g = 1.0  # Red color
+    aux_point = [Point(x[0], x[1], x[2])]
+    marker.points = aux_point  # Position of the 
+    return marker, aux_point
+
+def set_marker(marker, x, aux_point):
+    marker.header.frame_id = "world"  # Set the frame ID
+    marker.header.stamp = rospy.Time.now()
+    aux_point.append(Point(x[0], x[1], x[2]))
+    marker.points = aux_point  # Position of the 
+    return marker, aux_point
+
+def send_marker_msg(msg, pub):
+    # Send Odometry to ROS framework
+    # INPUT 
+    # msg                                                                            - odometry msg
+    # pub                                                                            - odometry publisher
+    pub.publish(msg)
+    return None
