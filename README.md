@@ -32,5 +32,8 @@ pip install scipy==1.7.2
 pip install pyyaml
 pip install -U rospkg
 pip install empy
+pip install casadi==3.5.1
+pip install rospy==1.16.0
+acados
 latex
 ```

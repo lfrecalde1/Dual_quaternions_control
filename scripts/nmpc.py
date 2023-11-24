@@ -71,8 +71,8 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
     #ocp.model.cost_expr_ext_cost = 1*(error_position.T @ Q @error_position) + 1*(model.u[0:4].T @ R @ model.u[0:4]) + 0.2*(value.T@value)
     #ocp.model.cost_expr_ext_cost_e = 1*(error_position.T @ Q @error_position)+ 0.2*(value.T@value)
 
-    ocp.model.cost_expr_ext_cost = 1*(error_position.T @ Q @error_position) + 1*(model.u[0:4].T @ R @ model.u[0:4]) + 1*((1 - q_error[0]) + q_error[1:4].T@q_error[1:4])
-    ocp.model.cost_expr_ext_cost_e = 1*(error_position.T @ Q @error_position)+ 1*((1 - q_error[0]) + q_error[1:4].T@q_error[1:4])
+    ocp.model.cost_expr_ext_cost = 1*(error_position.T @ Q @error_position) + 1*(model.u[0:4].T @ R @ model.u[0:4]) + 0.5*((1 - q_error[0]) + q_error[1:4].T@q_error[1:4])
+    ocp.model.cost_expr_ext_cost_e = 1*(error_position.T @ Q @error_position)+ 0.5*((1 - q_error[0]) + q_error[1:4].T@q_error[1:4])
 
     # Auxiliary variable initialization
     ocp.parameter_values = np.zeros(nx)
