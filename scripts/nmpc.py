@@ -39,8 +39,8 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
 
     # Gain matrices position error
     Q = MX.zeros(3, 3)
-    Q[0, 0] = 1.5
-    Q[1, 1] = 1.5
+    Q[0, 0] = 10.5
+    Q[1, 1] = 10.5
     Q[2, 2] = 10.0
 
     # Control effort using gain matrices

@@ -67,8 +67,8 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     # Desired states
     xref = np.zeros((13, t.shape[0]), dtype = np.double)
     # Desired position of the system
-    xd, yd, zd, theta, theta_p = ref_trajectory(t)
-    #xd, yd, zd, theta, theta_p = ref_trajectory_agresive(t, 40)
+    #xd, yd, zd, theta, theta_p = ref_trajectory(t)
+    xd, yd, zd, theta, theta_p = ref_trajectory_agresive(t, 10)
 
     xref[0, :] = xd
     xref[1, :] = yd
@@ -108,19 +108,18 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
 
     # No Cython
     acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= True, generate= True)
-    acados_ocp_solver_planning = AcadosOcpSolver(ocp_planning, json_file="acados_ocp_planning_" + ocp.model.name + ".json", build= True, generate= True)
+    acados_ocp_solver_planning = AcadosOcpSolver(ocp_planning, json_file="acados_ocp_planning_" + ocp_planning.model.name + ".json", build= True, generate= True)
 
     
     # Integration using Acados
     acados_integrator = AcadosSimSolver(ocp, json_file="acados_sim_" + ocp.model.name + ".json")
-
     # Auxiliary variables and control
     nx = ocp.model.x.size()[0]
     nu = ocp.model.u.size()[0]
 
     # Reset Solver
     acados_ocp_solver.reset()
-    acados_ocp_solver_planning.reset()
+    #acados_ocp_solver_planning.reset()
 
     # Initial States Acados
     for stage in range(N_prediction + 1):
@@ -128,7 +127,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     for stage in range(N_prediction):
         acados_ocp_solver.set(stage, "u", np.zeros((nu,)))
 
-    ## Planning section before the controller
+    # Planning section before the controller
     for stage in range(N_planning + 1):
         acados_ocp_solver_planning.set(stage, "x", x[:, 0])
     for stage in range(N_planning):
@@ -138,16 +137,16 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
         acados_ocp_solver_planning.set(j, "p", yref)
     yref_N = xref[:,0+N_planning]
     acados_ocp_solver_planning.set(N_prediction, "p", yref_N)
-
-    # Solve Planning section
+#
+    ## Solve Planning section
     status = acados_ocp_solver_planning.solve()
-
-    # print summary
+#
+    ## print summary
     print(f"cost function value = {acados_ocp_solver_planning.get_cost()} after {iter} SQP iterations")
- 
+ #
     for kk in range(0, x_planning.shape[1]):
         x_planning[:, kk] = acados_ocp_solver_planning.get(kk, "x")
-
+#
     # Ros message
     rospy.loginfo_once("Quadrotor Simulation")
     message_ros = "Quadrotor Simulation "
@@ -162,7 +161,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     # Marker Message
 
     mesh_marker_msg = Marker()
-    mesh_marker_msg, aux_trajectory = init_marker(mesh_marker_msg, xref[:, 0])
+    mesh_marker_msg, aux_trajectory = init_marker(mesh_marker_msg, x_planning[:, 0])
 
     # Loop simulation
     for k in range(0, t.shape[0] - N_prediction):
@@ -237,7 +236,7 @@ if __name__ == '__main__':
     try: #################################### Simulation  #####################################################
         # Time parameters
         ts = 0.05
-        t_f = 10
+        t_f = 15
         t_N = 0.5
 
         # Parameters of the system  (mass, inertial matrix, gravity)
