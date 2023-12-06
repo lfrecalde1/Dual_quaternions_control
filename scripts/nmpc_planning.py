@@ -119,7 +119,7 @@ def create_ocp_solver_planning(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max
     ocp.solver_options.globalization = 'MERIT_BACKTRACKING'
     ocp.solver_options.nlp_solver_max_iter = 1000
     ocp.solver_options.nlp_solver_tol_stat = 1e-3
-    ocp.solver_options.levenberg_marquardt = 0.3
+    ocp.solver_options.levenberg_marquardt = 0.1
     ocp.solver_options.sim_method_num_stages = 4
     ocp.solver_options.sim_method_num_steps = 3
     ocp.solver_options.__sim_method_newton_iter = 3

@@ -478,8 +478,8 @@ void quadrotor_acados_create_5_set_nlp_in(quadrotor_solver_capsule* capsule, con
     double* lbx0 = lubx0;
     double* ubx0 = lubx0 + NBX0;
     // change only the non-zero elements:
-    lbx0[2] = 4;
-    ubx0[2] = 4;
+    lbx0[2] = 2;
+    ubx0[2] = 2;
     lbx0[6] = 0.00000000000000006123233995736766;
     ubx0[6] = 0.00000000000000006123233995736766;
     lbx0[8] = 1;
@@ -713,7 +713,7 @@ void quadrotor_acados_create_7_set_nlp_out(quadrotor_solver_capsule* capsule)
 
     // initialize with x0
     
-    x0[2] = 4;
+    x0[2] = 2;
     x0[6] = 0.00000000000000006123233995736766;
     x0[8] = 1;
 

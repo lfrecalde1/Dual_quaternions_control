@@ -337,6 +337,25 @@ def set_marker(marker, x, aux_point):
     marker.points = aux_point  # Position of the 
     return marker, aux_point
 
+def init_marker_ref(marker, x):
+    marker.header.frame_id = "map"  # Set the frame ID
+    marker.type = Marker.LINE_STRIP
+    marker.action = Marker.ADD
+    marker.scale.x = 0.01  # Scale of the mesh
+    marker.scale.y = 0.01
+    marker.scale.z = 0.01
+    marker.color.a = 1.0  # Alpha (transparency)
+    marker.color.b = 1.0  # Red color
+    aux_point = [Point(x[0], x[1], x[2])]
+    marker.points = aux_point  # Position of the 
+    return marker, aux_point
+
+def set_marker_ref(marker, x, aux_point):
+    marker.header.frame_id = "map"  # Set the frame ID
+    marker.header.stamp = rospy.Time.now()
+    aux_point.append(Point(x[0], x[1], x[2]))
+    marker.points = aux_point  # Position of the 
+    return marker, aux_point
 def send_marker_msg(msg, pub):
     # Send Odometry to ROS framework
     # INPUT 

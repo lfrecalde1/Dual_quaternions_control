@@ -5,6 +5,7 @@ from fancy_plots import fancy_plots_3, fancy_plots_4
 from fancy_plots import plot_states_position, plot_states_quaternion, plot_control_actions, plot_states_euler
 from system_functions import f_d, axisToquaternion, f_d_casadi, ref_trajectory, compute_desired_quaternion, get_euler_angles
 from system_functions import send_odom_msg, set_odom_msg, init_marker, set_marker, send_marker_msg, ref_trajectory_agresive
+from system_functions import init_marker_ref, set_marker_ref
 from export_ode_model import quadrotorModel
 from acados_template import AcadosOcpSolver, AcadosSimSolver
 from nmpc import create_ocp_solver
@@ -15,7 +16,7 @@ from visualization_msgs.msg import Marker
 
 
 
-def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_marker)-> None:
+def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_planning, pub_ref)-> None:
     # DESCRIPTION
     # simulation of a quadrotor using a NMPC as a controller
     # INPUTS
@@ -158,10 +159,11 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     odom_msg = set_odom_msg(odom_msg, x[:, 0])
     send_odom_msg(odom_msg, pub)
 
-    # Marker Message
-
+    # Marker Message Planning trajectory and reference
     mesh_marker_msg = Marker()
     mesh_marker_msg, aux_trajectory = init_marker(mesh_marker_msg, x_planning[:, 0])
+    ref_marker_msg = Marker()
+    ref_marker_msg, aux_trajectory_ref = init_marker_ref(ref_marker_msg, xref[:, 0])
 
     # Loop simulation
     for k in range(0, t.shape[0] - N_prediction):
@@ -207,8 +209,10 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
         # Send msg to Ros
         odom_msg = set_odom_msg(odom_msg, x[:, k+1])
         mesh_marker_msg, aux_trajectory = set_marker(mesh_marker_msg, x_planning[:, k+1], aux_trajectory)
+        ref_marker_msg, aux_trajectory_ref = set_marker_ref(ref_marker_msg, xref[:, k+1], aux_trajectory_ref)
         send_odom_msg(odom_msg, pub)
-        send_marker_msg(mesh_marker_msg, pub_marker)
+        send_marker_msg(mesh_marker_msg, pub_planning)
+        send_marker_msg(ref_marker_msg, pub_ref)
         rospy.loginfo(message_ros + str(toc_solver))
 
     # Results
@@ -248,7 +252,7 @@ if __name__ == '__main__':
         L = [m, Jxx, Jyy, Jzz, g]
 
         # Initial conditions of the system
-        pos_0 = np.array([0.0, 0.0, 4.0], dtype=np.double)
+        pos_0 = np.array([0.0, 0.0, 2.0], dtype=np.double)
         vel_0 = np.array([0.0, 0.0, 0.0], dtype=np.double)
         angle_0 = np.pi
         axis_0 = [0.0, 1, 0.0]
@@ -265,11 +269,14 @@ if __name__ == '__main__':
         odomety_topic = "/quadrotor/odom"
         odometry_publisher = rospy.Publisher(odomety_topic, Odometry, queue_size = 1, tcp_nodelay=True)
 
-        marker_topic = "/quadrotor/marker"
-        marker_publisher = rospy.Publisher(marker_topic, Marker, queue_size=10, tcp_nodelay=True)
+        planning_topic = "/quadrotor/planning"
+        planning_publisher = rospy.Publisher(planning_topic, Marker, queue_size=10, tcp_nodelay=True)
+
+        ref_topic = "/quadrotor/ref"
+        ref_publisher = rospy.Publisher(ref_topic, Marker, queue_size=10, tcp_nodelay=True)
 
         # Simulation
-        main(ts, t_f, t_N, x_0, L, odometry_publisher, marker_publisher)
+        main(ts, t_f, t_N, x_0, L, odometry_publisher, planning_publisher, ref_publisher)
 
     except(KeyboardInterrupt):
         print("Error System")
