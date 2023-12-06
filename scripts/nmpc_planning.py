@@ -3,7 +3,7 @@ from export_ode_model import quadrotorModel, conjugate_quaternion, quat_multiply
 from casadi import Function, MX, vertcat, sin, cos, fabs
 import numpy as np
 
-def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_min, tau_2_max, tau_2_min, tau_3_max, tau_3_min, L, ts)->AcadosOcp:
+def create_ocp_solver_planning(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_min, tau_2_max, tau_2_min, tau_3_max, tau_3_min, L, ts)->AcadosOcp:
     # Creation of the optimal control problem
     # INPUTS
     # x0                                                                                 - Initial condition
@@ -41,7 +41,7 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
     Q = MX.zeros(3, 3)
     Q[0, 0] = 1.5
     Q[1, 1] = 1.5
-    Q[2, 2] = 10.0
+    Q[2, 2] = 15.0
 
     # Control effort using gain matrices
     R = MX.zeros(4, 4)
@@ -95,10 +95,10 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
 
     # Gains over the Horizon for the nonlinear constraint
     cost_weights = np.ones((ns, ))
-    ocp.cost.zl = 100*np.ones((ns, ))
+    ocp.cost.zl = 1000*np.ones((ns, ))
     ocp.cost.Zl = 1*np.ones((ns, ))
     ocp.cost.Zu = 1*np.ones((ns, ))
-    ocp.cost.zu = 100*np.ones((ns, ))
+    ocp.cost.zu = 1000*np.ones((ns, ))
 
     # Norm of a quaternion should be one
     ocp.constraints.lh = np.array([constraint.min])
@@ -108,14 +108,47 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
     ocp.constraints.idxsh = np.array(range(nsh))
 
     # Set options
+    #ocp.solver_options.qp_solver = 'FULL_CONDENSING_HPIPM'
+    #ocp.solver_options.hessian_approx = "GAUSS_NEWTON"  
+    #ocp.solver_options.integrator_type = 'ERK'
+    #ocp.solver_options.sim_method_num_stages = 4
+    #ocp.solver_options.sim_method_num_steps = 3
+    #ocp.solver_options.print_level = 0
+    #ocp.solver_options.tol = 1e-6
+    #ocp.solver_options.nlp_solver_type = 'SQP' # SQP_RTI, SQP
+    #ocp.solver_options.Tsim = ts
+    #ocp.solver_options.globalization = 'MERIT_BACKTRACKING'
+    #ocp.solver_options.nlp_solver_max_iter = 5000
+    #ocp.solver_options.qp_solver_iter_max = 400
+    #ocp.solver_options.alpha_reduction = 0.1
+    #ocp.solver_options.line_search_use_sufficient_descent = 0
+    #ocp.solver_options.globalization_use_SOC = 0
+    #ocp.solver_options.eps_sufficient_descent = 5e-1
+    #ocp.code_export_directory = 'c_generated_code_planning'
+
+    #ocp.solver_options.qp_solver = 'FULL_CONDENSING_HPIPM'
+    #ocp.solver_options.hessian_approx = "GAUSS_NEWTON"  
+    #ocp.solver_options.integrator_type = 'ERK'
+    ##ocp.solver_options.print_level = 3
+    #ocp.solver_options.nlp_solver_type = 'SQP' # SQP_RTI, SQP
+    #ocp.solver_options.Tsim = ts
+    #ocp.solver_options.globalization = 'MERIT_BACKTRACKING'
+    #ocp.solver_options.nlp_solver_max_iter = 1000
+    #ocp.solver_options.nlp_solver_tol_stat = 1e-4
+    #ocp.solver_options.levenberg_marquardt = 0.5
+    #ocp.solver_options.sim_method_num_stages = 4
+    #ocp.solver_options.sim_method_num_steps = 3
+    #ocp.solver_options.qp_solver_iter_max = 100
+    #ocp.code_export_directory = 'c_generated_code_planning'
+
     ocp.solver_options.qp_solver = "PARTIAL_CONDENSING_HPIPM" 
     ocp.solver_options.hessian_approx = "GAUSS_NEWTON"  
     ocp.solver_options.integrator_type = "ERK"
-    ocp.solver_options.nlp_solver_type = "SQP_RTI"
+    ocp.solver_options.nlp_solver_type = "SQP"
     ocp.solver_options.Tsim = ts
     ocp.solver_options.sim_method_num_stages = 4
     ocp.solver_options.sim_method_num_steps = 3
-    ocp.solver_options.nlp_solver_max_iter = 200
+    ocp.solver_options.nlp_solver_max_iter = 1000
     ocp.solver_options.tol = 1e-4
 
     # Set prediction horizon

@@ -8,6 +8,7 @@ from system_functions import send_odom_msg, set_odom_msg, init_marker, set_marke
 from export_ode_model import quadrotorModel
 from acados_template import AcadosOcpSolver, AcadosSimSolver
 from nmpc import create_ocp_solver
+from nmpc_planning import create_ocp_solver_planning
 import rospy
 from nav_msgs.msg import Odometry
 from visualization_msgs.msg import Marker
@@ -30,6 +31,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
 
     # Simulation time definition
     t = np.arange(0, t_f + ts, ts)
+    N_planning = t.shape[0]-1
 
     # Ros time definitions
     hz = int(1/ts)
@@ -47,6 +49,9 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     # Generalized states of the system
     x = np.zeros((13, t.shape[0] + 1 - N_prediction), dtype=np.double)
     x[:, 0] = x_0
+
+    x_planning = np.zeros((13, t.shape[0]), dtype=np.double)
+    x_planning[:, 0] = x_0
 
     # Euler angles of the system
     euler = np.zeros((3, t.shape[0] + 1 - N_prediction), dtype=np.double)
@@ -77,6 +82,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     xref[7, :] = q_d[1, :]
     xref[8, :] = q_d[2, :]
     xref[9, :] = q_d[3, :]
+    print(xref.shape)
 
     # Desired Euler angles
     euler_d = np.zeros((3, t.shape[0]), dtype=np.double)
@@ -96,34 +102,51 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     model, f_d_c, constraint, f_error = quadrotorModel(L)
 
     # Optimization problem
-    ocp = create_ocp_solver(x[:, 0], N_prediction, t_N, F_max, F_min, tau_1_max, tau_1_min, tau_2_max, tau_2_min, tau_3_max, taux_3_min, L)
+    ocp = create_ocp_solver(x[:, 0], N_prediction, t_N, F_max, F_min, tau_1_max, tau_1_min, tau_2_max, tau_2_min, tau_3_max, taux_3_min, L, ts)
+    ocp_planning = create_ocp_solver_planning(x[:, 0], N_planning, t_f, F_max, F_min, tau_1_max, tau_1_min, tau_2_max, tau_2_min, tau_3_max, taux_3_min, L, ts)
 
-    # Creation of the optimization problem
-    #solver_json = 'acados_ocp_' + model.name + '.json'
-
-    # These parameters can be modified in order to avoid the creation of a new optimal control problem  Cython
-    #AcadosOcpSolver.generate(ocp, json_file=solver_json)
-    #AcadosOcpSolver.build(ocp.code_export_directory, with_cython=True)
-
-    # Assignation of the optimal control problem
-    #acados_ocp_solver = AcadosOcpSolver.create_cython_solver(solver_json)
 
     # No Cython
     acados_ocp_solver = AcadosOcpSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json", build= True, generate= True)
+    acados_ocp_solver_planning = AcadosOcpSolver(ocp_planning, json_file="acados_ocp_planning_" + ocp.model.name + ".json", build= True, generate= True)
 
     
     # Integration using Acados
-    acados_integrator = AcadosSimSolver(ocp, json_file="acados_ocp_" + ocp.model.name + ".json")
+    acados_integrator = AcadosSimSolver(ocp, json_file="acados_sim_" + ocp.model.name + ".json")
 
     # Auxiliary variables and control
     nx = ocp.model.x.size()[0]
     nu = ocp.model.u.size()[0]
+
+    # Reset Solver
+    acados_ocp_solver.reset()
+    acados_ocp_solver_planning.reset()
 
     # Initial States Acados
     for stage in range(N_prediction + 1):
         acados_ocp_solver.set(stage, "x", x[:, 0])
     for stage in range(N_prediction):
         acados_ocp_solver.set(stage, "u", np.zeros((nu,)))
+
+    ## Planning section before the controller
+    for stage in range(N_planning + 1):
+        acados_ocp_solver_planning.set(stage, "x", x[:, 0])
+    for stage in range(N_planning):
+        acados_ocp_solver_planning.set(stage, "u", np.zeros((nu,)))
+    for j in range(N_planning):
+        yref = xref[:,0+j]
+        acados_ocp_solver_planning.set(j, "p", yref)
+    yref_N = xref[:,0+N_planning]
+    acados_ocp_solver_planning.set(N_prediction, "p", yref_N)
+
+    # Solve Planning section
+    status = acados_ocp_solver_planning.solve()
+
+    # print summary
+    print(f"cost function value = {acados_ocp_solver_planning.get_cost()} after {iter} SQP iterations")
+ 
+    for kk in range(0, x_planning.shape[1]):
+        x_planning[:, kk] = acados_ocp_solver_planning.get(kk, "x")
 
     # Ros message
     rospy.loginfo_once("Quadrotor Simulation")
@@ -150,10 +173,10 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
 
         # Desired Trajectory of the system
         for j in range(N_prediction):
-            yref = xref[:,k+j]
+            yref = x_planning[:,k+j]
             acados_ocp_solver.set(j, "p", yref)
 
-        yref_N = xref[:,k+N_prediction]
+        yref_N = x_planning[:,k+N_prediction]
         acados_ocp_solver.set(N_prediction, "p", yref_N)
 
         # Check Solution since there can be possible errors 
@@ -184,7 +207,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
 
         # Send msg to Ros
         odom_msg = set_odom_msg(odom_msg, x[:, k+1])
-        mesh_marker_msg, aux_trajectory = set_marker(mesh_marker_msg, xref[:, k+1], aux_trajectory)
+        mesh_marker_msg, aux_trajectory = set_marker(mesh_marker_msg, x_planning[:, k+1], aux_trajectory)
         send_odom_msg(odom_msg, pub)
         send_marker_msg(mesh_marker_msg, pub_marker)
         rospy.loginfo(message_ros + str(toc_solver))
@@ -192,12 +215,12 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     # Results
     # Position
     fig11, ax11, ax21, ax31 = fancy_plots_3()
-    plot_states_position(fig11, ax11, ax21, ax31, x[0:3, :], xref[0:3, :], t, "Position of the System")
+    plot_states_position(fig11, ax11, ax21, ax31, x[0:3, :], x_planning[0:3, :], t, "Position of the System")
     plt.show()
 
     # Orientation
     fig12, ax12, ax22, ax32, ax42 = fancy_plots_4()
-    plot_states_quaternion(fig12, ax12, ax22, ax32, ax42, x[6:10, :], xref[6:10, :], t, "Quaternions of the System")
+    plot_states_quaternion(fig12, ax12, ax22, ax32, ax42, x[6:10, :], x_planning[6:10, :], t, "Quaternions of the System")
     plt.show()
 
     # Control Actions
@@ -205,16 +228,16 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_m
     plot_control_actions(fig13, ax13, ax23, ax33, ax43, F, M, t, "Control Actions of the System")
     plt.show()
 
-    fig14, ax14, ax24, ax34 = fancy_plots_3()
-    plot_states_euler(fig14, ax14, ax24, ax34, euler[0:3, :], euler_d[0:3, :], t, "Euler Angles of the System")
-    plt.show()
-    None
+    #fig14, ax14, ax24, ax34 = fancy_plots_3()
+    #plot_states_euler(fig14, ax14, ax24, ax34, euler[0:3, :], euler_d[0:3, :], t, "Euler Angles of the System")
+    #plt.show()
+    #None
 
 if __name__ == '__main__':
     try: #################################### Simulation  #####################################################
         # Time parameters
         ts = 0.05
-        t_f = 20
+        t_f = 10
         t_N = 0.5
 
         # Parameters of the system  (mass, inertial matrix, gravity)
