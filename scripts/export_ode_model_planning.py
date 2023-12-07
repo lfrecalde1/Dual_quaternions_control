@@ -46,7 +46,7 @@ def quatdot_c(quat, omega):
     r = omega[2, 0]
 
     # Auxiliary variable in order to avoid numerical issues
-    K_quat = 0.5
+    K_quat = 10
     quat_error = 1 - (qw**2 + qx**2 + qy**2 + qz**2)
 
     # Create skew matrix

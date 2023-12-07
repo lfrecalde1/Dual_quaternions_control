@@ -69,7 +69,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_p
     xref = np.zeros((13, t.shape[0]), dtype = np.double)
     # Desired position of the system
     #xd, yd, zd, theta, theta_p = ref_trajectory(t)
-    xd, yd, zd, theta, theta_p = ref_trajectory_agresive(t, 10)
+    xd, yd, zd, theta, theta_p = ref_trajectory_agresive(t, 20)
 
     xref[0, :] = xd
     xref[1, :] = yd
@@ -241,7 +241,7 @@ if __name__ == '__main__':
         # Time parameters
         ts = 0.05
         t_f = 15
-        t_N = 0.5
+        t_N = 0.7
 
         # Parameters of the system  (mass, inertial matrix, gravity)
         m = 1                                                                             

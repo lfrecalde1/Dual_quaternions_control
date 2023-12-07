@@ -1,5 +1,5 @@
 from acados_template import AcadosOcp, AcadosOcpSolver, AcadosSimSolver
-from export_ode_model import quadrotorModel, conjugate_quaternion, quat_multiply, quaternion_to_axis_angle
+from export_ode_model_planning import quadrotorModel, conjugate_quaternion, quat_multiply, quaternion_to_axis_angle
 from casadi import Function, MX, vertcat, sin, cos, fabs
 import numpy as np
 
@@ -118,7 +118,7 @@ def create_ocp_solver_planning(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max
     ocp.solver_options.nlp_solver_type = 'SQP' # SQP_RTI, SQP
     ocp.solver_options.globalization = 'MERIT_BACKTRACKING'
     ocp.solver_options.nlp_solver_max_iter = 1000
-    ocp.solver_options.nlp_solver_tol_stat = 1e-3
+    ocp.solver_options.nlp_solver_tol_stat = 1e-4
     ocp.solver_options.levenberg_marquardt = 0.1
     ocp.solver_options.sim_method_num_stages = 4
     ocp.solver_options.sim_method_num_steps = 3

@@ -691,7 +691,7 @@ void quadrotor_acados_create_6_set_opts(quadrotor_solver_capsule* capsule)
 
 
     // set SQP specific options
-    double nlp_solver_tol_stat = 0.001;
+    double nlp_solver_tol_stat = 0.0001;
     ocp_nlp_solver_opts_set(nlp_config, nlp_opts, "tol_stat", &nlp_solver_tol_stat);
 
     double nlp_solver_tol_eq = 0.000001;

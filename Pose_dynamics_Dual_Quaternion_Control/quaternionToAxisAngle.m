@@ -20,13 +20,16 @@ function [output] = quaternionToAxisAngle(q)
     %axis_aux = vectorPart
     
     output = axis*theta;
-    disp('normal')
-    output
+    
+    vector_part_aux = [0; 0; 1];
+    axis_aux = 0;
     if abs(theta) < 2.2204e-15
         
         output = (vectorPart/scalarPart)*(1-((norm(vectorPart)^2)/(3*scalarPart^2)));
-        disp('small')
-        output
+        output = vector_part_aux*axis_aux;
+        %output = vectorPart;
+        
+        
     end
 
 end
