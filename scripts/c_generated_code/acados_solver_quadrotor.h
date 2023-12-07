@@ -63,7 +63,7 @@
 #define QUADROTOR_NY0    0
 #define QUADROTOR_NY     0
 #define QUADROTOR_NYN    0
-#define QUADROTOR_N      15
+#define QUADROTOR_N      17
 #define QUADROTOR_NH     1
 #define QUADROTOR_NPHI   0
 #define QUADROTOR_NHN    0

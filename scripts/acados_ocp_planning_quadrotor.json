@@ -1,7 +1,7 @@
 {
-    "acados_include_path": "/home/fer/acados/include",
-    "acados_lib_path": "/home/fer/acados/lib",
-    "code_export_directory": "/home/fer/Doctorado_Research/ARPL_Dual_Quaternion/scripts/c_generated_code_planning",
+    "acados_include_path": "/home/epvs/ml_casadi/src/acados/include",
+    "acados_lib_path": "/home/epvs/ml_casadi/src/acados/lib",
+    "code_export_directory": "/ml_casadi/c_generated_code_planning",
     "constraints": {
         "C": [],
         "C_e": [],
@@ -180,8 +180,8 @@
         "zu_e": []
     },
     "cython_include_dirs": [
-        "/home/fer/miniconda3/envs/py3-learning/lib/python3.8/site-packages/numpy/core/include",
-        "/home/fer/miniconda3/envs/py3-learning/include/python3.8"
+        "/usr/local/lib/python3.8/dist-packages/numpy/core/include",
+        "/usr/include/python3.8"
     ],
     "dims": {
         "N": 300,

@@ -1,8 +1,8 @@
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-from fancy_plots import fancy_plots_3, fancy_plots_4
-from fancy_plots import plot_states_position, plot_states_quaternion, plot_control_actions, plot_states_euler
+from fancy_plots import fancy_plots_3, fancy_plots_4, fancy_plots_1
+from fancy_plots import plot_states_position, plot_states_quaternion, plot_control_actions, plot_states_euler, plot_time
 from system_functions import f_d, axisToquaternion, f_d_casadi, ref_trajectory, compute_desired_quaternion, get_euler_angles
 from system_functions import send_odom_msg, set_odom_msg, init_marker, set_marker, send_marker_msg, ref_trajectory_agresive
 from system_functions import init_marker_ref, set_marker_ref
@@ -83,7 +83,6 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_p
     xref[7, :] = q_d[1, :]
     xref[8, :] = q_d[2, :]
     xref[9, :] = q_d[3, :]
-    print(xref.shape)
 
     # Desired Euler angles
     euler_d = np.zeros((3, t.shape[0]), dtype=np.double)
@@ -138,16 +137,12 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_p
         acados_ocp_solver_planning.set(j, "p", yref)
     yref_N = xref[:,0+N_planning]
     acados_ocp_solver_planning.set(N_prediction, "p", yref_N)
-#
-    ## Solve Planning section
     status = acados_ocp_solver_planning.solve()
-#
-    ## print summary
-    print(f"cost function value = {acados_ocp_solver_planning.get_cost()} after {iter} SQP iterations")
- #
+
+    # get Optimal states of the system using the planning 
     for kk in range(0, x_planning.shape[1]):
         x_planning[:, kk] = acados_ocp_solver_planning.get(kk, "x")
-#
+
     # Ros message
     rospy.loginfo_once("Quadrotor Simulation")
     message_ros = "Quadrotor Simulation "
@@ -231,6 +226,11 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_p
     plot_control_actions(fig13, ax13, ax23, ax33, ax43, F, M, t, "Control Actions of the System")
     plt.show()
 
+    # Sampling time
+    fig14, ax14  = fancy_plots_1()
+    plot_time(fig14, ax14, t_sample, delta_t, t, "Computational Time")
+    plt.show()
+
     #fig14, ax14, ax24, ax34 = fancy_plots_3()
     #plot_states_euler(fig14, ax14, ax24, ax34, euler[0:3, :], euler_d[0:3, :], t, "Euler Angles of the System")
     #plt.show()
@@ -241,7 +241,7 @@ if __name__ == '__main__':
         # Time parameters
         ts = 0.05
         t_f = 15
-        t_N = 0.7
+        t_N = 0.8
 
         # Parameters of the system  (mass, inertial matrix, gravity)
         m = 1                                                                             
