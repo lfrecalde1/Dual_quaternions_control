@@ -163,6 +163,8 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_p
     # Loop simulation
     for k in range(0, t.shape[0] - N_prediction):
         tic = rospy.get_time()
+        acados_ocp_solver.options_set("rti_phase", 1)
+        acados_ocp_solver.solve()
         # Control Law Acados
         acados_ocp_solver.set(0, "lbx", x[:, k])
         acados_ocp_solver.set(0, "ubx", x[:, k])
@@ -176,7 +178,8 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_p
         acados_ocp_solver.set(N_prediction, "p", yref_N)
 
         # Check Solution since there can be possible errors 
-        status = acados_ocp_solver.solve()
+        acados_ocp_solver.options_set("rti_phase", 2)
+        acados_ocp_solver.solve()
 
         # Get the control Action
         aux_control = acados_ocp_solver.get(0, "u")
@@ -188,7 +191,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_p
         # run time
         loop_rate.sleep()
         toc_solver = rospy.get_time() - tic
-        delta_t[:, k] = toc_solver
+        delta_t[:, k] = acados_ocp_solver.get_stats("time_tot")
 
         # Get states of the system using acados (ERK)
         acados_integrator.set("x", x[:, k])
@@ -241,7 +244,7 @@ if __name__ == '__main__':
         # Time parameters
         ts = 0.05
         t_f = 15
-        t_N = 0.8
+        t_N = 1.0
 
         # Parameters of the system  (mass, inertial matrix, gravity)
         m = 1                                                                             
@@ -252,7 +255,7 @@ if __name__ == '__main__':
         L = [m, Jxx, Jyy, Jzz, g]
 
         # Initial conditions of the system
-        pos_0 = np.array([0.0, 0.0, 2.0], dtype=np.double)
+        pos_0 = np.array([0.0, 0.0, 3.0], dtype=np.double)
         vel_0 = np.array([0.0, 0.0, 0.0], dtype=np.double)
         angle_0 = np.pi
         axis_0 = [0.0, 1, 0.0]

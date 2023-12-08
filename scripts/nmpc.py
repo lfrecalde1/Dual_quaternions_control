@@ -113,8 +113,9 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
     ocp.solver_options.integrator_type = "ERK"
     ocp.solver_options.nlp_solver_type = "SQP_RTI"
     ocp.solver_options.Tsim = ts
+    ocp.solver_options.levenberg_marquardt = 0.01
     ocp.solver_options.sim_method_num_stages = 4
-    ocp.solver_options.sim_method_num_steps = 3
+    ocp.solver_options.sim_method_num_steps = 3 # Verify the meaning of this value
     ocp.solver_options.nlp_solver_max_iter = 200
     ocp.solver_options.tol = 1e-4
 

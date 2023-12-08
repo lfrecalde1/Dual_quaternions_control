@@ -97,6 +97,7 @@ typedef struct quadrotor_solver_capsule
     external_function_param_casadi *forw_vde_casadi;
     external_function_param_casadi *expl_ode_fun;
 
+    external_function_param_casadi *hess_vde_casadi;
 
 
 
@@ -120,6 +121,7 @@ typedef struct quadrotor_solver_capsule
     // constraints
     external_function_param_casadi *nl_constr_h_fun_jac;
     external_function_param_casadi *nl_constr_h_fun;
+    external_function_param_casadi *nl_constr_h_fun_jac_hess;
 
 
 

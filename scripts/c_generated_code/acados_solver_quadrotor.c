@@ -403,7 +403,7 @@ void quadrotor_acados_create_5_set_nlp_in(quadrotor_solver_capsule* capsule, con
     if (new_time_steps) {
         quadrotor_acados_update_time_steps(capsule, N, new_time_steps);
     } else {// all time_steps are identical
-        double time_step = 0.04705882352941176;
+        double time_step = 0.047619047619047616;
         for (int i = 0; i < N; i++)
         {
             ocp_nlp_in_set(nlp_config, nlp_dims, nlp_in, i, "Ts", &time_step);
@@ -478,8 +478,8 @@ void quadrotor_acados_create_5_set_nlp_in(quadrotor_solver_capsule* capsule, con
     double* lbx0 = lubx0;
     double* ubx0 = lubx0 + NBX0;
     // change only the non-zero elements:
-    lbx0[2] = 2;
-    ubx0[2] = 2;
+    lbx0[2] = 3;
+    ubx0[2] = 3;
     lbx0[6] = 0.00000000000000006123233995736766;
     ubx0[6] = 0.00000000000000006123233995736766;
     lbx0[8] = 1;
@@ -658,7 +658,7 @@ void quadrotor_acados_create_6_set_opts(quadrotor_solver_capsule* capsule)
     double nlp_solver_step_length = 1;
     ocp_nlp_solver_opts_set(nlp_config, nlp_opts, "step_length", &nlp_solver_step_length);
 
-    double levenberg_marquardt = 0;
+    double levenberg_marquardt = 0.01;
     ocp_nlp_solver_opts_set(nlp_config, nlp_opts, "levenberg_marquardt", &levenberg_marquardt);
 
     /* options QP solver */
@@ -713,7 +713,7 @@ void quadrotor_acados_create_7_set_nlp_out(quadrotor_solver_capsule* capsule)
 
     // initialize with x0
     
-    x0[2] = 2;
+    x0[2] = 3;
     x0[6] = 0.00000000000000006123233995736766;
     x0[8] = 1;
 

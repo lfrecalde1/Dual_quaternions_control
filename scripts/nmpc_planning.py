@@ -113,17 +113,22 @@ def create_ocp_solver_planning(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max
 
 
     ocp.solver_options.qp_solver = 'PARTIAL_CONDENSING_HPIPM'
-    ocp.solver_options.hessian_approx = "GAUSS_NEWTON"  
+    ocp.solver_options.hessian_approx = 'EXACT'
+    ocp.solver_options.exact_hess_constr = 0
+    ocp.solver_options.exact_hess_dyn = 0
     ocp.solver_options.integrator_type = 'ERK'
     ocp.solver_options.nlp_solver_type = 'SQP' # SQP_RTI, SQP
     ocp.solver_options.globalization = 'MERIT_BACKTRACKING'
-    ocp.solver_options.nlp_solver_max_iter = 1000
-    ocp.solver_options.nlp_solver_tol_stat = 1e-4
-    ocp.solver_options.levenberg_marquardt = 0.1
+    ocp.solver_options.nlp_solver_max_iter = 2000
+    ocp.solver_options.nlp_solver_tol_stat = 1e-6
+    ocp.solver_options.alpha_reduction = 0.1
+    ocp.solver_options.alpha_min = 0.01
+    ocp.solver_options.levenberg_marquardt = 0.05
     ocp.solver_options.sim_method_num_stages = 4
-    ocp.solver_options.sim_method_num_steps = 3
+    ocp.solver_options.sim_method_num_steps = 3 # Verify what is the meaning of this value
     ocp.solver_options.__sim_method_newton_iter = 3
     ocp.solver_options.qp_solver_iter_max = 100
+    ocp.solver_options.qp_solver_warm_start = 1
     ocp.code_export_directory = 'c_generated_code_planning'
 
     # Set prediction horizon
