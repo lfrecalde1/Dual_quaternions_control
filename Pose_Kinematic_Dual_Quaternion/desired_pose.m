@@ -8,7 +8,7 @@ h_d(:,1) =  pose_dual(t_d,r_d_init);
 p_d(:,1) = get_traslatation_dual(h_d(:, 1));
 r_d(:,1) = get_rotation_dual(h_d(:, 1));
 
-for k = 1:length(t)-1
+for k = 1:length(t)
     %% Get Evolution of the system based on Jacobian
     xi_d(:, k) = jacobian_dual_quaternion(p_dot_d(:, k), p_d(2:4, k), w_d(:, k));
     xi_aux_d(:, k) = ((ts/2)*xi_d(:, k));

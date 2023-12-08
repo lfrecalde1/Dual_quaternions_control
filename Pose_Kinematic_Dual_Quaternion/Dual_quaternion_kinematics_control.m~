@@ -2,7 +2,7 @@
 clc, clear all, close all;
 
 %% Time definition
-ts = 0.05;
+ts = 0.01;
 t_final = 20;
 t = (0:ts:t_final);
 
@@ -40,9 +40,8 @@ rosinit('192.168.100.15', 'NodeHost', '192.168.100.15', 'Nodename', '/Matlab_Dua
 odomPublisher = rospublisher('/odom', 'nav_msgs/Odometry');
 odomMsg = rosmessage(odomPublisher);
 
-RefPublisher = rospublisher('/visualization_marker', 'visualization_msgs/Marker');
+RefPublisher = rospublisher('/odom', 'nav_msgs/Odometry');
 RefMsg = rosmessage(RefPublisher);
-
 %% Desired Dual Quaternions
 t_d = [0;0;0;0];
 angle_d = pi/2;
@@ -65,7 +64,6 @@ kp = [kp_pose; kp_attitude];
 
 %% Send Initial Values Ros
 send_odom(odomMsg, odomPublisher, p(:, 1), r(:, 1));
-send_ref_init(RefMsg, RefPublisher, p_d(:, 1), r_d(:, 1));
 for k = 1:length(t)
     tic;
     %% Get Error Cuaternions
@@ -97,12 +95,58 @@ for k = 1:length(t)
     
     %% Send Ros Values
     send_odom(odomMsg, odomPublisher, p(:, k+1), r(:, k+1));
-    send_ref(RefMsg, RefPublisher, p_d(:, k+1), r_d(:, k+1));
     while(toc<ts)
     end
     toc;
 end
-rosshutdown;
+% %% System Simulation
+% close all; paso=1; 
+% figure
+% set(gcf, 'PaperUnits', 'inches');
+% set(gcf, 'PaperSize', [4 2]);
+% set(gcf, 'PaperPositionMode', 'manual');
+% set(gcf, 'PaperPosition', [0 0 8 3]);
+% luz = light;
+% luz.Color=[0.65,0.65,0.65];
+% luz.Style = 'infinite';
+% plot3(p(2,1),p(3,1),p(4,1),'--','Color',[56,171,217]/255,'linewidth',1.5);hold on,grid on
+% plot3(p_d(2,1),p_d(3,1),p_d(4,1),'-','Color',[50,50,5]/255,'linewidth',1.5);hold on,grid on
+% view(-70,35);
+% xlim([-5 5])
+% ylim([-1 5])
+% zlim([-5 5])
+% for k = 1:20:length(t)
+%     drawnow
+%     plot3(p(2,1:k),p(3,1:k),p(4,1:k),'--','Color',[56,171,217]/255,'linewidth',1.5);
+%     plot3(p_d(2,1:k),p_d(3,1:k),p_d(4,1:k),'-','Color',[50,50,50]/255,'linewidth',1.5);hold on,grid on
+%     % Frames Orientation Plot
+%     orientation = r(:, k);
+%     translation = p(2:4, k);
+%     rotationMatrix = quat2rotm(orientation');
+% 
+%     % Define the frame vectors in the local frame
+%     frameVectors = [1 0 0; 0 1 0; 0 0 1];
+% 
+%     % Rotate and translate the frame vectors to the global frame
+%     globalFrameVectors = rotationMatrix' * frameVectors + translation;
+%     globalFrameVectors = globalFrameVectors ./ vecnorm(globalFrameVectors);
+%     globalFrameVectors = orth(globalFrameVectors);
+% 
+%     % X-axis in red
+%     quiver3(translation(1), translation(2), translation(3), globalFrameVectors(1,1), globalFrameVectors(2,1), globalFrameVectors(3,1), 'r', 'LineWidth', 2);
+%     % Y-axis in green
+%     quiver3(translation(1), translation(2), translation(3), globalFrameVectors(1,2), globalFrameVectors(2,2), globalFrameVectors(3,2), 'g', 'LineWidth', 2);
+%     % Z-axis in blue
+%     quiver3(translation(1), translation(2), translation(3), globalFrameVectors(1,3), globalFrameVectors(2,3), globalFrameVectors(3,3), 'b', 'LineWidth', 2);
+%     
+%     
+%     legend({'$\mathbf{h}$','$\mathbf{h}_{des}$'},'Interpreter','latex','FontSize',11,'Location','northwest','Orientation','horizontal');
+%     legend('boxoff')
+%     title('$\textrm{Movement Executed by the System}$','Interpreter','latex','FontSize',11);
+%     xlabel('$\textrm{X}[m]$','Interpreter','latex','FontSize',9); ylabel('$\textrm{Y}[m]$','Interpreter','latex','FontSize',9);zlabel('$\textrm{Z}[m]$','Interpreter','latex','FontSize',9);
+%     
+% end
+
 
 figure
 set(gcf, 'PaperUnits', 'inches');
