@@ -12,19 +12,30 @@ def quatTorot_c(quat):
 
     # Normalized quaternion
     q = quat
-    q = q/ca.norm_2(q)
+    q = q/(q.T@q)
 
     # Create empty variable
-    q_hat = ca.MX.zeros(3, 3)
-    q_hat[0, 1] = -q[3]
-    q_hat[0, 2] = q[2]
-    q_hat[1, 2] = -q[1]
-    q_hat[1, 0] = q[3]
-    q_hat[2, 0] = -q[2]
-    q_hat[2, 1] = q[1]
+    #q_hat = ca.MX.zeros(3, 3)
+    #q_hat[0, 1] = -q[3]
+    #q_hat[0, 2] = q[2]
+    #q_hat[1, 2] = -q[1]
+    #q_hat[1, 0] = q[3]
+    #q_hat[2, 0] = -q[2]
+    #q_hat[2, 1] = q[1]
+
+    q0 = q[0]
+    q1 = q[1]
+    q2 = q[2]
+    q3 = q[3]
+
+    Q = ca.vertcat(
+        ca.horzcat(q0**2+q1**2-q2**2-q3**2, 2*(q1*q2-q0*q3), 2*(q1*q3+q0*q2)),
+        ca.horzcat(2*(q1*q2+q0*q3), q0**2+q2**2-q1**2-q3**2, 2*(q2*q3-q0*q1)),
+        ca.horzcat(2*(q1*q3-q0*q2), 2*(q2*q3+q0*q1), q0**2+q3**2-q1**2-q2**2))
 
     # Compute Rotational Matrix
-    R = ca.MX.eye(3) + 2 * (q_hat@q_hat) + 2 * q[0] * q_hat
+    #R = ca.MX.eye(3) + 2 * (q_hat@q_hat) + 2 * q[0] * q_hat
+    R = Q
     return R
 
 def quatdot_c(quat, omega):
@@ -46,7 +57,7 @@ def quatdot_c(quat, omega):
     r = omega[2, 0]
 
     # Auxiliary variable in order to avoid numerical issues
-    K_quat = 0.5
+    K_quat = 2
     quat_error = 1 - (qw**2 + qx**2 + qy**2 + qz**2)
 
     # Create skew matrix
