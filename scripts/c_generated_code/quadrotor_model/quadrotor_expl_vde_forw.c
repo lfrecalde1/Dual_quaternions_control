@@ -53,6 +53,7 @@ extern "C" {
 #define casadi_s13 CASADI_PREFIX(s13)
 #define casadi_s14 CASADI_PREFIX(s14)
 #define casadi_s15 CASADI_PREFIX(s15)
+#define casadi_s16 CASADI_PREFIX(s16)
 #define casadi_s2 CASADI_PREFIX(s2)
 #define casadi_s3 CASADI_PREFIX(s3)
 #define casadi_s4 CASADI_PREFIX(s4)
@@ -384,10 +385,11 @@ static const casadi_int casadi_s12[28] = {4, 13, 0, 0, 0, 0, 1, 2, 3, 3, 3, 3, 3
 static const casadi_int casadi_s13[17] = {13, 1, 0, 13, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 static const casadi_int casadi_s14[185] = {13, 13, 0, 13, 26, 39, 52, 65, 78, 91, 104, 117, 130, 143, 156, 169, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 static const casadi_int casadi_s15[59] = {13, 4, 0, 13, 26, 39, 52, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+static const casadi_int casadi_s16[21] = {17, 1, 0, 17, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
 
 static const casadi_real casadi_c0[9] = {1., 0., 0., 0., 1., 0., 0., 0., 1.};
 
-/* quadrotor_expl_vde_forw:(i0[13],i1[13x13],i2[13x4],i3[4],i4[13])->(o0[13],o1[13x13],o2[13x4]) */
+/* quadrotor_expl_vde_forw:(i0[13],i1[13x13],i2[13x4],i3[4],i4[17])->(o0[13],o1[13x13],o2[13x4]) */
 static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem) {
   casadi_int i, j, k;
   casadi_real *rr, *ss, *tt;
@@ -7201,7 +7203,7 @@ CASADI_SYMBOL_EXPORT const casadi_int* quadrotor_expl_vde_forw_sparsity_in(casad
     case 1: return casadi_s14;
     case 2: return casadi_s15;
     case 3: return casadi_s5;
-    case 4: return casadi_s13;
+    case 4: return casadi_s16;
     default: return 0;
   }
 }

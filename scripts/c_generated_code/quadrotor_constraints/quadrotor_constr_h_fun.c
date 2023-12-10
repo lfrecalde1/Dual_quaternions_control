@@ -35,6 +35,7 @@ extern "C" {
 #define casadi_s1 CASADI_PREFIX(s1)
 #define casadi_s2 CASADI_PREFIX(s2)
 #define casadi_s3 CASADI_PREFIX(s3)
+#define casadi_s4 CASADI_PREFIX(s4)
 
 /* Symbol visibility in DLLs */
 #ifndef CASADI_SYMBOL_EXPORT
@@ -61,9 +62,10 @@ casadi_real casadi_dot(casadi_int n, const casadi_real* x, const casadi_real* y)
 static const casadi_int casadi_s0[17] = {13, 1, 0, 13, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 static const casadi_int casadi_s1[8] = {4, 1, 0, 4, 0, 1, 2, 3};
 static const casadi_int casadi_s2[3] = {0, 0, 0};
-static const casadi_int casadi_s3[5] = {1, 1, 0, 1, 0};
+static const casadi_int casadi_s3[21] = {17, 1, 0, 17, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+static const casadi_int casadi_s4[5] = {1, 1, 0, 1, 0};
 
-/* quadrotor_constr_h_fun:(i0[13],i1[4],i2[],i3[13])->(o0) */
+/* quadrotor_constr_h_fun:(i0[13],i1[4],i2[],i3[17])->(o0) */
 static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem) {
   casadi_real *rr, *ss;
   casadi_real w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, *w13=w+13, *w14=w+26;
@@ -177,14 +179,14 @@ CASADI_SYMBOL_EXPORT const casadi_int* quadrotor_constr_h_fun_sparsity_in(casadi
     case 0: return casadi_s0;
     case 1: return casadi_s1;
     case 2: return casadi_s2;
-    case 3: return casadi_s0;
+    case 3: return casadi_s3;
     default: return 0;
   }
 }
 
 CASADI_SYMBOL_EXPORT const casadi_int* quadrotor_constr_h_fun_sparsity_out(casadi_int i) {
   switch (i) {
-    case 0: return casadi_s3;
+    case 0: return casadi_s4;
     default: return 0;
   }
 }

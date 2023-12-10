@@ -42,7 +42,7 @@
 #define QUADROTOR_NX     13
 #define QUADROTOR_NZ     0
 #define QUADROTOR_NU     4
-#define QUADROTOR_NP     13
+#define QUADROTOR_NP     17
 #define QUADROTOR_NBX    0
 #define QUADROTOR_NBX0   13
 #define QUADROTOR_NBU    4

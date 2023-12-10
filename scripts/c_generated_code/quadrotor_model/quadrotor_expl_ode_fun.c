@@ -48,6 +48,7 @@ extern "C" {
 #define casadi_s3 CASADI_PREFIX(s3)
 #define casadi_s4 CASADI_PREFIX(s4)
 #define casadi_s5 CASADI_PREFIX(s5)
+#define casadi_s6 CASADI_PREFIX(s6)
 #define casadi_scal CASADI_PREFIX(scal)
 #define casadi_sq CASADI_PREFIX(sq)
 
@@ -269,10 +270,11 @@ static const casadi_int casadi_s2[12] = {3, 3, 0, 3, 5, 6, 0, 1, 2, 1, 2, 2};
 static const casadi_int casadi_s3[12] = {3, 3, 0, 1, 3, 6, 0, 0, 1, 0, 1, 2};
 static const casadi_int casadi_s4[17] = {13, 1, 0, 13, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 static const casadi_int casadi_s5[8] = {4, 1, 0, 4, 0, 1, 2, 3};
+static const casadi_int casadi_s6[21] = {17, 1, 0, 17, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
 
 static const casadi_real casadi_c0[9] = {1., 0., 0., 0., 1., 0., 0., 0., 1.};
 
-/* quadrotor_expl_ode_fun:(i0[13],i1[4],i2[13])->(o0[13]) */
+/* quadrotor_expl_ode_fun:(i0[13],i1[4],i2[17])->(o0[13]) */
 static int casadi_f0(const casadi_real** arg, casadi_real** res, casadi_int* iw, casadi_real* w, int mem) {
   casadi_int i, j, k;
   casadi_real *rr, *ss, *tt;
@@ -714,7 +716,7 @@ CASADI_SYMBOL_EXPORT const casadi_int* quadrotor_expl_ode_fun_sparsity_in(casadi
   switch (i) {
     case 0: return casadi_s4;
     case 1: return casadi_s5;
-    case 2: return casadi_s4;
+    case 2: return casadi_s6;
     default: return 0;
   }
 }

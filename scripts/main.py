@@ -53,6 +53,7 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_p
 
     x_planning = np.zeros((13, t.shape[0]), dtype=np.double)
     x_planning[:, 0] = x_0
+    u_planning = np.zeros((4, t.shape[0]), dtype=np.double)
 
     # Euler angles of the system
     euler = np.zeros((3, t.shape[0] + 1 - N_prediction), dtype=np.double)
@@ -121,11 +122,6 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_p
     acados_ocp_solver.reset()
     #acados_ocp_solver_planning.reset()
 
-    # Initial States Acados
-    for stage in range(N_prediction + 1):
-        acados_ocp_solver.set(stage, "x", x[:, 0])
-    for stage in range(N_prediction):
-        acados_ocp_solver.set(stage, "u", np.zeros((nu,)))
 
     # Planning section before the controller
     for stage in range(N_planning + 1):
@@ -140,9 +136,15 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_p
     status = acados_ocp_solver_planning.solve()
 
     # get Optimal states of the system using the planning 
-    for kk in range(0, x_planning.shape[1]):
+    for kk in range(0, x_planning.shape[1]-1):
         x_planning[:, kk] = acados_ocp_solver_planning.get(kk, "x")
+        u_planning[:, kk] = acados_ocp_solver_planning.get(kk, "u")
 
+    # Initial States Acados
+    for stage in range(N_prediction + 1):
+        acados_ocp_solver.set(stage, "x", x_planning[:, stage])
+    for stage in range(N_prediction):
+        acados_ocp_solver.set(stage, "u", u_planning[:, stage])
     # Ros message
     rospy.loginfo_once("Quadrotor Simulation")
     message_ros = "Quadrotor Simulation "
@@ -172,10 +174,14 @@ def main(ts: float, t_f: float, t_N: float, x_0: np.ndarray, L: list, pub, pub_p
         # Desired Trajectory of the system
         for j in range(N_prediction):
             yref = x_planning[:,k+j]
-            acados_ocp_solver.set(j, "p", yref)
+            uref = u_planning[:,k+j]
+            aux_ref = np.hstack((yref, uref))
+            acados_ocp_solver.set(j, "p", aux_ref)
 
         yref_N = x_planning[:,k+N_prediction]
-        acados_ocp_solver.set(N_prediction, "p", yref_N)
+        uref_N = u_planning[:,k+N_prediction]
+        aux_ref_N = np.hstack((yref_N, uref_N))
+        acados_ocp_solver.set(N_prediction, "p", aux_ref_N)
 
         # Check Solution since there can be possible errors 
         acados_ocp_solver.options_set("rti_phase", 2)

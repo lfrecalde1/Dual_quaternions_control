@@ -178,7 +178,13 @@ def quadrotorModel(L: list)-> AcadosModel:
     wy_d = MX.sym('wy_d')
     wz_d = MX.sym('wz_d')
 
-    X_d = vertcat(x_d, y_d, z_d, vx_d, vy_d, vz_d, qw_d, q1_d, q2_d, q3_d, wx_d, wy_d, wz_d)
+    F_d = MX.sym('F_d')
+    T1_d = MX.sym('T1_d')
+    T2_d = MX.sym('T2_d')
+    T3_d = MX.sym('T3_d')
+
+
+    X_d = vertcat(x_d, y_d, z_d, vx_d, vy_d, vz_d, qw_d, q1_d, q2_d, q3_d, wx_d, wy_d, wz_d, F_d, T1_d, T2_d, T3_d)
     p = X_d
 
     # Explicit and implicit functions
@@ -283,7 +289,7 @@ def quaternion_to_axis_angle(q):
     #output = axis * theta
 
     # Check if theta is close to zero
-    output = ca.if_else(ca.fabs(theta) < 2.2204e-5,
+    output = ca.if_else((theta*theta) < 2.2204e-1,
                         (theta_aux*axis_part_aux),
                         theta*axis)
 

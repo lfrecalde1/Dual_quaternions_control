@@ -45,7 +45,7 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
 
     # Control effort using gain matrices
     R = MX.zeros(4, 4)
-    R[0, 0] = 1/F_max
+    R[0, 0] = 20/F_max
     R[1, 1] = 20/tau_1_max
     R[2, 2] = 20/tau_2_max
     R[3, 3] = 20/tau_3_max
@@ -56,6 +56,7 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
 
     # Position error
     error_position = ocp.p[0:3] - model.x[0:3]
+    error_nominal_input = ocp.p[13:17] - model.u[0:4]
 
     # Quaternion error
     q_d = ocp.p[6:10]
@@ -71,11 +72,11 @@ def create_ocp_solver(x0, N_horizon, t_horizon, F_max, F_min, tau_1_max, tau_1_m
     #ocp.model.cost_expr_ext_cost = 1*(error_position.T @ Q @error_position) + 1*(model.u[0:4].T @ R @ model.u[0:4]) + 0.2*(value.T@value)
     #ocp.model.cost_expr_ext_cost_e = 1*(error_position.T @ Q @error_position)+ 0.2*(value.T@value)
 
-    ocp.model.cost_expr_ext_cost = 1*(error_position.T @ Q @error_position) + 1*(model.u[0:4].T @ R @ model.u[0:4]) + 1*((1 - q_error[0]) + q_error[1:4].T@q_error[1:4])
+    ocp.model.cost_expr_ext_cost = 1*(error_position.T @ Q @error_position) + 1*(error_nominal_input.T @ R @ error_nominal_input) + 1*((1 - q_error[0]) + q_error[1:4].T@q_error[1:4])
     ocp.model.cost_expr_ext_cost_e = 1*(error_position.T @ Q @error_position)+ 1*((1 - q_error[0]) + q_error[1:4].T@q_error[1:4])
 
     # Auxiliary variable initialization
-    ocp.parameter_values = np.zeros(nx)
+    ocp.parameter_values = np.zeros(nx + nu)
 
     # Constraints
     ocp.constraints.constr_type = 'BGH'
